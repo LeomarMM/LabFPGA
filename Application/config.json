@@ -1,0 +1,10 @@
+{
+    "baudRate": 9600,
+    "port": "COM3",
+    "sizeInBytes": 11,
+    "crcPolynomial": 47,
+    "expressPort": 3000,
+    "quartus_pgm": "C:\\intelFPGA_lite\\23.1std\\quartus\\bin64\\quartus_pgm.exe",
+    "quartus_pgm_port": 1,
+    "boardName": "RZEasyFPGA"
+}

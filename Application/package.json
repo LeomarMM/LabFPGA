@@ -1,0 +1,26 @@
+{
+  "name": "monitor_backend",
+  "version": "0.0.1",
+  "description": "Server backend that interacts with the FPGA monitor component via serial port.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "keywords": [
+    "fpga",
+    "remote",
+    "lab"
+  ],
+  "author": "Leomar Marcelo Marschalk",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "serialport": "^10.5.0",
+    "ws": "^8.13.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.40.0"
+  }
+}
