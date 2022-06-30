@@ -21,7 +21,7 @@ end UART_RX;
 
 architecture behavioral of UART_RX is
 
-	type uart_state is (IDLE, RECV);
+	type uart_state is (IDLE, START, RECV);
 	attribute syn_encoding : string;
 	attribute syn_encoding of uart_state : type is "safe";
 
@@ -96,15 +96,29 @@ begin
 			o_RECV <= (OTHERS => '1');
 		elsif(rising_edge(i_CLK)) then
 			case t_STATE is
-				when IDLE =>
+				when IDLE	=>
 					if(w_RX_DOWN = '1') then
-						t_STATE <= RECV;
+						t_STATE <= START;
 						w_BAUD_RST <= '0';
 						r_ND <= '1';
 					else
 						t_STATE <= IDLE;
 						w_BAUD_RST <= '1';
 						r_ND <= '0';
+					end if;
+				when START	=>
+					if(r_INTERRUPT = '1') then
+						t_STATE <= IDLE;
+						w_BAUD_RST <= '1';
+						r_ND <= '0';
+					elsif(w_RECV(0) = '0') then
+						t_STATE <= RECV;
+						w_BAUD_RST <= '0';
+						r_ND <= '1';
+					else
+						t_STATE <= START;
+						w_BAUD_RST <= '0';
+						r_ND <= '1';
 					end if;
 				when RECV =>
 					if(r_INTERRUPT = '1') then
@@ -141,11 +155,11 @@ begin
 	end process BAUD_CLK;
 	
 	-- Interruptor
-	INT_RX	:	process(r_CLK, w_RECV, w_BAUD_RST)
+	INT_RX	:	process(r_CLK, w_RECV, w_BAUD_RST, t_STATE)
 	begin
 		if(w_BAUD_RST = '1') then
 			r_INTERRUPT <= '0';
-		elsif(falling_edge(r_CLK) and w_RECV(8) = '0') then
+		elsif(falling_edge(r_CLK) and (w_RECV(frame_size) = '0' or (t_STATE = START and w_RECV(0) = '1'))) then
 			r_INTERRUPT <= '1';
 		end if;
 	end process INT_RX;
