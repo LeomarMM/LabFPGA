@@ -1,10 +1,12 @@
 *.bak
 *.echo
-*.txt
-*.wlf
 *.mti
 *.mpf
+*.qws
+*.txt
+*.wlf
 db
 incremental_db
 output_files
 simulation
+work
