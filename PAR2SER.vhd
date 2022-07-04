@@ -17,13 +17,18 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 entity PAR2SER is
+	generic
+	(
+		word_size	:	integer		:= 8;
+		rst_val		:	std_logic	:= '0'
+	);
 	port
 	(
 		i_RST		: in std_logic;
 		i_CLK		: in std_logic;
 		i_LOAD	: in std_logic;
 		i_ND		: in std_logic;
-		i_DATA	: in std_logic_vector(7 downto 0);
+		i_DATA	: in std_logic_vector(word_size-1 downto 0);
 		o_TX		: out std_logic
 	);
 end PAR2SER;
@@ -44,6 +49,7 @@ begin
 
 		if(i_RST = '1') then
 			w_ND <= '0';
+			o_TX <= rst_val;
 		elsif falling_edge(i_CLK) then
 			if(i_ND = '1') then
 				o_TX <= w_DATA(7);
@@ -57,15 +63,16 @@ begin
 	
 	-- Carregando/deslocando o dado no serializador
 
-	U2 : process (i_CLK)
+	U2 : process (i_RST, i_CLK)
 	begin
-
-		if rising_edge(i_CLK) then
+		if(i_RST = '1') then
+			w_DATA <= (OTHERS => rst_val);
+		elsif rising_edge(i_CLK) then
 			if(i_LOAD = '1') then
 				w_DATA <= i_DATA;
 
 			elsif(w_ND = '1') then
-				w_DATA <= w_DATA(6 downto 0) & '0';
+				w_DATA <= w_DATA(word_size-2 downto 0) & rst_val;
 			end if;
 		end if;
 

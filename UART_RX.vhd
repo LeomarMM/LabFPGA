@@ -1,5 +1,4 @@
 library IEEE;
-
 use IEEE.STD_LOGIC_1164.ALL;
 
 entity UART_RX is
@@ -25,14 +24,11 @@ architecture behavioral of UART_RX is
 	attribute syn_encoding : string;
 	attribute syn_encoding of uart_state : type is "safe";
 
-	constant c_MAX_CLK_COUNT	:	integer := clock / (2*baud);
-
-	signal r_CLK_COUNTER	:	integer range 0 to c_MAX_CLK_COUNT;
-	signal r_CLK			:	std_logic;
 	signal r_ND				:	std_logic;
 	signal r_INTERRUPT	:	std_logic;
 	signal t_STATE			:	uart_state;
 	signal w_BAUD_RST		:	std_logic;
+	signal w_CLK			:	std_logic;
 	signal w_RECV			:	std_logic_vector(frame_size downto 0);
 	signal w_RX_DOWN		:	std_logic;
 
@@ -49,7 +45,7 @@ architecture behavioral of UART_RX is
 	component SER2PAR
 	generic
 	(
-		word_size	:	integer
+		word_size	:	integer := frame_size+1
 	);
 	port
 	(
@@ -61,7 +57,27 @@ architecture behavioral of UART_RX is
 	);
 	end component;
 
+	component COUNTER_CLK
+	generic
+	(
+		max_count	:	integer := clock / (2*baud)
+	);
+	port
+	(
+		i_CLK	:	in std_logic;
+		i_RST	:	in std_logic;
+		o_CLK	:	out std_logic
+	);
+	end component;
 begin
+
+	CC1	:	COUNTER_CLK
+	port map
+	(
+		i_CLK	=> i_CLK,
+		i_RST => w_BAUD_RST,
+		o_CLK => w_CLK
+	);
 
 	ED1	:	EDGE_DETECTOR
 	port map
@@ -73,21 +89,17 @@ begin
 	);
 	
 	S2P	:	SER2PAR
-	generic map
-	(
-		word_size => frame_size+1
-	)
 	port map
 	(
 		i_RST		=>	w_BAUD_RST,
-		i_CLK		=>	r_CLK,
+		i_CLK		=>	w_CLK,
 		i_ND		=>	r_ND,
 		o_DATA	=>	w_RECV,
 		i_RX		=>	i_RX
 	);
 	
 	-- Máquina de Estados
-	UART_MACH	:	process(i_CLK, r_CLK, i_RX, i_RST, t_STATE, w_RX_DOWN)
+	UART_MACH	:	process(i_CLK, w_CLK, i_RX, i_RST, t_STATE, w_RX_DOWN)
 	begin
 		if(i_RST = '1') then
 			t_STATE <= IDLE;
@@ -137,29 +149,12 @@ begin
 		end if;
 	end process UART_MACH;
 
-	-- Gerador de baud
-	BAUD_CLK	:	process (i_CLK, w_BAUD_RST)
-	begin
-		if(w_BAUD_RST = '1') then
-			r_CLK_COUNTER <= 0;
-			r_CLK <= '0';
-
-		elsif(rising_edge(i_CLK)) then
-
-			if(r_CLK_COUNTER = c_MAX_CLK_COUNT) then
-				r_CLK_COUNTER <= 0;
-				r_CLK <= not r_CLK;
-			else r_CLK_COUNTER <= r_CLK_COUNTER + 1;
-			end if;
-		end if;
-	end process BAUD_CLK;
-	
 	-- Interruptor
-	INT_RX	:	process(r_CLK, w_RECV, w_BAUD_RST, t_STATE)
+	INT_RX	:	process(w_CLK, w_RECV, w_BAUD_RST, t_STATE)
 	begin
 		if(w_BAUD_RST = '1') then
 			r_INTERRUPT <= '0';
-		elsif(falling_edge(r_CLK) and (w_RECV(frame_size) = '0' or (t_STATE = START and w_RECV(0) = '1'))) then
+		elsif(falling_edge(w_CLK) and (w_RECV(frame_size) = '0' or (t_STATE = START and w_RECV(0) = '1'))) then
 			r_INTERRUPT <= '1';
 		end if;
 	end process INT_RX;

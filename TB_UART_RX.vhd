@@ -26,10 +26,10 @@ architecture testbench of TB_UART_RX is
 	);
 	end component;
 
-	signal	w_CLK	:	std_logic;
-	signal	w_RST	:	std_logic;
-	signal	w_RX		:	std_logic;
-	signal	w_RECV	:	std_logic_vector(7 downto 0);
+	signal w_CLK	:	std_logic;
+	signal w_RST	:	std_logic;
+	signal w_RX		:	std_logic;
+	signal w_RECV	:	std_logic_vector(7 downto 0);
 
 begin
 
@@ -75,8 +75,8 @@ begin
 		w_RX <= '1';
 		wait for delay;
 		w_RX <= '0';
-		wait for delay/10; -- Introduzir falha para testes de failsafe
-		w_RX <= '1'; -- Se tudo estiver bem, máquina de estados deve voltar para IDLE
+		wait for delay/10;	-- Introduzir falha para teste de failsafe
+		w_RX <= '1'; 			-- Se tudo estiver bem, máquina de estados deve voltar para IDLE
 		for i in 0 to 255 loop
 			v_RX := std_logic_vector(to_unsigned(i, w_RECV'length));
 			wait for delay;
