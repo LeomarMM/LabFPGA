@@ -17,7 +17,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 entity PAR2SER is
-	generic
+ 	generic
 	(
 		word_size	:	integer		:= 8;
 		rst_val		:	std_logic	:= '0'
@@ -52,7 +52,7 @@ begin
 			o_TX <= rst_val;
 		elsif falling_edge(i_CLK) then
 			if(i_ND = '1') then
-				o_TX <= w_DATA(7);
+				o_TX <= w_DATA(word_size-1);
 				w_ND <= '1';
 			else
 				w_ND <= '0';
