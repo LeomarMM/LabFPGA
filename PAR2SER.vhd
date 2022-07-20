@@ -52,7 +52,7 @@ begin
 			o_TX <= rst_val;
 		elsif falling_edge(i_CLK) then
 			if(i_ND = '1') then
-				o_TX <= w_DATA(word_size-1);
+				o_TX <= w_DATA(0);
 				w_ND <= '1';
 			else
 				w_ND <= '0';
@@ -72,7 +72,7 @@ begin
 				w_DATA <= i_DATA;
 
 			elsif(w_ND = '1') then
-				w_DATA <= w_DATA(word_size-2 downto 0) & rst_val;
+				w_DATA <= rst_val & w_DATA(word_size-1 downto 1);
 			end if;
 		end if;
 
