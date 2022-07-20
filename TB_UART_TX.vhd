@@ -24,7 +24,8 @@ architecture testbench of TB_UART_TX is
 		i_CLK		:	in		std_logic;
 		i_RST		:	in		std_logic;
 		i_LS		:	in		std_logic;
-		o_TX		:	out	std_logic
+		o_TX		:	out	std_logic;
+		o_RTS		:	out	std_logic
 	);
 	end component;
 
@@ -44,7 +45,8 @@ begin
 		i_CLK		=>	w_CLK,
 		i_RST		=>	w_RST,
 		i_LS		=>	w_LS,
-		o_TX		=>	w_TX
+		o_TX		=>	w_TX,
+		o_RTS		=>	w_RTS
 	);
 
 	-- Clock
@@ -69,8 +71,14 @@ begin
 	process
 	begin
 		w_LS <= '1';
-		w_DATA <= "11001101";
+		w_DATA <= "01001101";
 		wait for 100ns;
+		w_LS <= '0';
+		wait for 100ns;
+		w_DATA <= "11001100";
+		wait on w_RTS;
+		w_LS <= '1';
+		wait for 30 ns;
 		w_LS <= '0';
 		wait;
 	end process;

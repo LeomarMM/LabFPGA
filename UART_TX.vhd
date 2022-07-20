@@ -15,13 +15,19 @@ entity UART_TX is
 		i_CLK		:	in		std_logic;
 		i_RST		:	in		std_logic;
 		i_LS		:	in		std_logic;
-		o_TX		:	out	std_logic
+		o_TX		:	out	std_logic;
+		o_RTS		:	out	std_logic
 	);
 
 end UART_TX;
 
 architecture behavioral of UART_TX is
 
+	type send_state is (IDLE, SEND);
+	attribute syn_encoding : string;
+	attribute syn_encoding of send_state : type is "safe";
+
+	constant phy_size	:	integer := frame_size + 2;
 	component COUNTER_CLK
 	generic
 	(
@@ -49,7 +55,7 @@ architecture behavioral of UART_TX is
 	component PAR2SER
 	generic
 	(
-		word_size	:	integer		:= frame_size+2;
+		word_size	:	integer		:= phy_size;
 		rst_val		:	std_logic	:= '1'
 	);
 	port
@@ -64,12 +70,15 @@ architecture behavioral of UART_TX is
 	end component;
 
 	signal w_CCLK		:	std_logic;
-	signal w_DATA		:	std_logic_vector(frame_size+1 downto 0);
-	signal w_DATA_INV	:	std_logic_vector(i_DATA'range);
+	signal w_DATA		:	std_logic_vector(phy_size-1 downto 0);
+	signal w_LOAD		:	std_logic;
+	signal w_LS_DOWN	:	std_logic;
 	signal w_ND			:	std_logic;
 	signal w_PCLK		:	std_logic;
 	signal w_RST		:	std_logic;
 	signal w_TX			:	std_logic;
+	signal r_BITC		:	integer range 0 to phy_size+1;
+	signal t_STATE		:	send_state;
 
 begin
 
@@ -77,7 +86,7 @@ begin
 	port map
 	(
 		i_CLK	=> i_CLK,
-		i_RST => W_RST,
+		i_RST => w_RST,
 		o_CLK => w_CCLK
 	);
 
@@ -86,26 +95,79 @@ begin
 	(
 		i_RST		=> i_RST,
 		i_CLK		=> w_PCLK,
-		i_LOAD	=> i_LS,
+		i_LOAD	=> w_LOAD,
 		i_ND		=> w_ND,
 		i_DATA	=> w_DATA,
 		o_TX		=>	w_TX
 	);
 
-	FLIP_INPUT : for i in i_DATA'range generate
-		w_DATA_INV(i) <= i_DATA(frame_size-1-i);
-	end generate;
+	ED1	:	EDGE_DETECTOR
+	port map
+	(
+		i_RST				=> i_RST,
+		i_CLK				=> i_CLK,
+		i_SIGNAL			=> i_LS,
+		o_EDGE_DOWN 	=> w_LS_DOWN
+	);
 
-	w_DATA <= '0' & w_DATA_INV & '1';
+	w_DATA <= '1' & i_DATA & '0';
 	w_ND <= not i_LS;
-	w_RST <= i_LS or i_RST;
 
-	with i_LS select
-		w_PCLK <= i_CLK when '1',
+	with t_STATE select
+		w_RST <= '1' when IDLE,
+		'0' when others;
+
+	with t_STATE select
+		w_LOAD <= '1' when IDLE,
+		'0' when others;
+
+	with t_STATE select
+		o_RTS <= '1' when IDLE,
+		'0' when others;
+
+	with t_STATE select
+		w_PCLK <= i_CLK when IDLE,
 		w_CCLK when others;
 
-	with i_LS select
-		o_TX <= '1' when '1',
+	with t_STATE select
+		o_TX <= '1' when IDLE,
 		w_TX when others;
+
+	process(i_RST, w_PCLK, w_LS_DOWN, r_BITC)
+	begin
+		if(i_RST = '1') then
+			t_STATE <= IDLE;
+		elsif(falling_edge(w_PCLK)) then
+			case t_STATE is
+			
+				when IDLE =>
+					if(w_LS_DOWN = '1') then
+						t_STATE <= SEND;
+					else
+						t_STATE <= IDLE;
+					end if;
+
+				when SEND =>
+					if(r_BITC = phy_size) then
+						t_STATE <= IDLE;
+					else
+						t_STATE <= SEND;
+					end if;
+
+			end case;
+		end if;
+	end process;
+
+	process(i_RST, w_PCLK, t_STATE)
+	begin
+		if(i_RST = '1') then
+			r_BITC <= 0;
+		elsif(falling_edge(w_PCLK) and t_STATE = SEND) then
+			if(r_BITC /= phy_size) then r_BITC <= r_BITC + 1;
+			else
+				r_BITC <= 0;
+			end if;
+		end if;
+	end process;
 
 end behavioral;
