@@ -111,27 +111,26 @@ begin
 	);
 
 	w_DATA <= '1' & i_DATA & '0';
-	w_ND <= not i_LS;
 
-	with t_STATE select
-		w_RST <= '1' when IDLE,
-		'0' when others;
-
-	with t_STATE select
-		w_LOAD <= '1' when IDLE,
-		'0' when others;
-
-	with t_STATE select
-		o_RTS <= '1' when IDLE,
-		'0' when others;
-
-	with t_STATE select
-		w_PCLK <= i_CLK when IDLE,
-		w_CCLK when others;
-
-	with t_STATE select
-		o_TX <= '1' when IDLE,
-		w_TX when others;
+	process(t_STATE, i_CLK, w_CCLK, w_TX)
+	begin
+		case t_STATE is
+		when IDLE 	=>
+			w_RST <= '1';
+			w_LOAD <= '1';
+			o_RTS <= '1';
+			w_PCLK <= i_CLK;
+			w_ND <= '0';
+			o_TX <= '1';
+		when others	=>
+			w_RST <= '0';
+			w_LOAD <= '0';
+			o_RTS <= '0';
+			w_ND <= '1';
+			w_PCLK <= w_CCLK;
+			o_TX <= w_TX;
+		end case;
+	end process;
 
 	process(i_RST, w_PCLK, w_LS_DOWN, r_BITC)
 	begin
