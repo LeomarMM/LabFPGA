@@ -72,9 +72,9 @@ begin
 	begin
 		w_LS <= '1';
 		w_DATA <= "01001101";
-		wait for 100ns;
+		wait for 100 ns;
 		w_LS <= '0';
-		wait for 100ns;
+		wait for 100 ns;
 		w_DATA <= "11001100";
 		wait on w_RTS;
 		w_LS <= '1';

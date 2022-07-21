@@ -43,9 +43,9 @@ begin
 	begin
 
 		w_CLK <= '0';
-		wait for 5ns;
+		wait for 5 ns;
 		w_CLK <= '1';
-		wait for 5ns;
+		wait for 5 ns;
 	
 	end process;
 
@@ -54,7 +54,7 @@ begin
 	begin
 
 		w_RST <= '1';
-		wait for 10ns;
+		wait for 10 ns;
 		w_RST <= '0';
 		wait;
 

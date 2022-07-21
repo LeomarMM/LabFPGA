@@ -9,7 +9,7 @@ generic
 );
 end TB_UART_RX;
 architecture testbench of TB_UART_RX is
-	constant delay	:	time		:= 1sec*(1.0/real(baud));
+	constant delay	:	time		:= 1 sec*(1.0/real(baud));
 	component UART_RX
 	generic
 	(

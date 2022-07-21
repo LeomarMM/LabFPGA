@@ -46,9 +46,9 @@ begin
 	begin
 
 		w_CLK <= '0';
-		wait for 5ns;
+		wait for 5 ns;
 		w_CLK <= '1';
-		wait for 5ns;
+		wait for 5 ns;
 	
 	end process;
 
@@ -57,7 +57,7 @@ begin
 	begin
 
 		w_RST <= '1';
-		wait for 10ns;
+		wait for 10 ns;
 		w_RST <= '0';
 		wait;
 
@@ -72,7 +72,7 @@ begin
 		w_ND <= '0';
 		w_FAIL <= '0';
 
-		wait for 15ns;
+		wait for 15 ns;
 
 		for i in 0 to 255 loop
 
