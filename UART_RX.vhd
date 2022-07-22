@@ -24,11 +24,11 @@ architecture behavioral of UART_RX is
 	attribute syn_encoding : string;
 	attribute syn_encoding of recv_state : type is "safe";
 
-	signal r_ND				:	std_logic;
-	signal r_INTERRUPT	:	std_logic;
+	signal w_ND				:	std_logic;
 	signal t_STATE			:	recv_state;
-	signal r_BAUD_RST		:	std_logic;
-	signal w_CLK			:	std_logic;
+	signal w_RST			:	std_logic;
+	signal w_CCLK			:	std_logic;
+	signal w_PCLK			:	std_logic;
 	signal w_DATA			:	std_logic_vector(frame_size downto 0);
 	signal w_RX_DOWN		:	std_logic;
 
@@ -76,8 +76,8 @@ begin
 	port map
 	(
 		i_CLK	=> i_CLK,
-		i_RST => r_BAUD_RST,
-		o_CLK => w_CLK
+		i_RST => w_RST,
+		o_CLK => w_CCLK
 	);
 
 	ED1	:	EDGE_DETECTOR
@@ -92,72 +92,66 @@ begin
 	S2P	:	SER2PAR
 	port map
 	(
-		i_RST		=>	r_BAUD_RST,
-		i_CLK		=>	w_CLK,
-		i_ND		=>	r_ND,
+		i_RST		=>	w_RST,
+		i_CLK		=>	w_CCLK,
+		i_ND		=>	w_ND,
 		o_DATA	=>	w_DATA,
 		i_RX		=>	i_RX
 	);
+
+	-- Saídas Dependentes dos Estados
+	process(t_STATE, i_CLK, w_CCLK)
+	begin
+		case t_STATE is
+			when IDLE =>
+				w_RST <= '1';
+				w_ND <= '0';
+				w_PCLK <= i_CLK;
+			when START =>
+				w_RST <= '0';
+				w_ND <= '1';
+				w_PCLK <= w_CCLK;
+			when RECV =>
+				w_RST <= '0';
+				w_ND <= '1';
+				w_PCLK <= w_CCLK;
+		end case;
+	end process;
 	
-	-- Máquina de Estados
-	UART_MACH : process(i_CLK, w_CLK, i_RX, i_RST, t_STATE, w_RX_DOWN)
+	-- Transição de Estados
+	UART_MACH : process(w_PCLK, i_RX, i_RST, t_STATE, w_RX_DOWN)
 	begin
 		if(i_RST = '1') then
 			t_STATE <= IDLE;
-			r_BAUD_RST <= '1';
-			r_ND <= '0';
+
 			o_DATA <= (OTHERS => '1');
-		elsif(rising_edge(i_CLK)) then
+		elsif(falling_edge(w_PCLK)) then
 			case t_STATE is
 				when IDLE	=>
 					if(w_RX_DOWN = '1') then
 						t_STATE <= START;
-						r_BAUD_RST <= '0';
-						r_ND <= '1';
 					else
 						t_STATE <= IDLE;
-						r_BAUD_RST <= '1';
-						r_ND <= '0';
 					end if;
 				when START	=>
-					if(r_INTERRUPT = '1') then
+					if(w_DATA(0) = '1') then
 						t_STATE <= IDLE;
-						r_BAUD_RST <= '1';
-						r_ND <= '0';
 					elsif(w_DATA(0) = '0') then
 						t_STATE <= RECV;
-						r_BAUD_RST <= '0';
-						r_ND <= '1';
 					else
 						t_STATE <= START;
-						r_BAUD_RST <= '0';
-						r_ND <= '1';
 					end if;
 				when RECV =>
-					if(r_INTERRUPT = '1') then
+					if(w_DATA(frame_size) = '0') then
 						for i in o_DATA'range loop
 							o_DATA(i) <= w_DATA(frame_size-1-i);
 						end loop;
 						t_STATE <= IDLE;
-						r_BAUD_RST <= '1';
-						r_ND <= '0';
 					else
 						t_STATE <= RECV;
-						r_BAUD_RST <= '0';
-						r_ND <= '1';
 					end if;
 			end case;
 		end if;
 	end process UART_MACH;
-
-	-- Interruptor
-	INT_RX : process(w_CLK, w_DATA, r_BAUD_RST, t_STATE)
-	begin
-		if(r_BAUD_RST = '1') then
-			r_INTERRUPT <= '0';
-		elsif(falling_edge(w_CLK) and (w_DATA(frame_size) = '0' or (t_STATE = START and w_DATA(0) = '1'))) then
-			r_INTERRUPT <= '1';
-		end if;
-	end process INT_RX;
 
 end behavioral;
