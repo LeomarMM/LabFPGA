@@ -6,8 +6,7 @@ entity UART_RX is
 	(
 		baud			:	integer				:= 9600;			--	Baud padrão
 		clock			:	integer				:= 50000000;	--	50MHz de clock interno padrao
-		frame_size	:	integer				:=	8;				--	Quantidade de bits no enquadramento de dados
-		parity		:	std_logic_vector	:= "00"			--	Paridade
+		frame_size	:	integer				:=	8				--	Quantidade de bits no enquadramento de dados
 	);
 	port
 	(
@@ -123,7 +122,6 @@ begin
 	begin
 		if(i_RST = '1') then
 			t_STATE <= IDLE;
-
 			o_DATA <= (OTHERS => '1');
 		elsif(falling_edge(w_PCLK)) then
 			case t_STATE is
@@ -134,18 +132,16 @@ begin
 						t_STATE <= IDLE;
 					end if;
 				when START	=>
-					if(w_DATA(0) = '1') then
+					if(w_DATA(frame_size) = '1') then
 						t_STATE <= IDLE;
-					elsif(w_DATA(0) = '0') then
+					elsif(w_DATA(frame_size) = '0') then
 						t_STATE <= RECV;
 					else
 						t_STATE <= START;
 					end if;
 				when RECV =>
-					if(w_DATA(frame_size) = '0') then
-						for i in o_DATA'range loop
-							o_DATA(i) <= w_DATA(frame_size-1-i);
-						end loop;
+					if(w_DATA(0) = '0') then
+						o_DATA <= w_DATA(frame_size downto 1);
 						t_STATE <= IDLE;
 					else
 						t_STATE <= RECV;

@@ -50,7 +50,7 @@ begin
 			
 				if(i_ND = '1') then
 				
-					w_DATA <= w_DATA(word_size-2 downto 0) & i_RX;
+					w_DATA <= i_RX & w_DATA(word_size-1 downto 1);
 		
 				end if;
 	
