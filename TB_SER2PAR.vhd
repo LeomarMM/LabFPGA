@@ -75,7 +75,7 @@ begin
 		for i in 0 to 255 loop
 			
 			v_RX := std_logic_vector(to_unsigned(i, w_DATA'length));
-			for j in 7 downto 0 loop
+			for j in 0 to 7 loop
 				
 				w_RX <= v_RX(j);
 				w_ND <= '1';

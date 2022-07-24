@@ -82,7 +82,7 @@ begin
 
 			w_LOAD <= '0';
 
-			for j in 7 downto 0 loop
+			for j in 0 to 7 loop
 
 				w_ND <= '1';
 				wait for 5 ns;
