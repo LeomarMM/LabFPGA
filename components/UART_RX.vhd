@@ -13,7 +13,8 @@ entity UART_RX is
 		i_CLK		:	in		std_logic;
 		i_RST		:	in		std_logic;
 		i_RX		:	in		std_logic;
-		o_DATA	:	out	std_logic_vector(frame_size-1 downto 0)
+		o_DATA	:	out	std_logic_vector(frame_size-1 downto 0);
+		o_RECV	:	out	std_logic
 	);
 end UART_RX;
 
@@ -103,14 +104,17 @@ begin
 	begin
 		case t_STATE is
 			when IDLE =>
+				o_RECV <= '0';
 				w_RST <= '1';
 				w_ND <= '0';
 				w_PCLK <= i_CLK;
 			when START =>
+				o_RECV <= '1';
 				w_RST <= '0';
 				w_ND <= '1';
 				w_PCLK <= w_CCLK;
 			when RECV =>
+				o_RECV <= '1';
 				w_RST <= '0';
 				w_ND <= '1';
 				w_PCLK <= w_CCLK;

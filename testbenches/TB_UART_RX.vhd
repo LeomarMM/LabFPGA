@@ -5,7 +5,8 @@ use IEEE.NUMERIC_STD.ALL;
 entity TB_UART_RX is
 generic
 (
-	baud	:	integer	:=	2100000
+	baud			:	integer	:=	2100000;
+	word_size	:	integer	:=	8
 );
 end TB_UART_RX;
 architecture testbench of TB_UART_RX is
@@ -13,9 +14,9 @@ architecture testbench of TB_UART_RX is
 	component UART_RX
 	generic
 	(
-		baud			:	integer;	--	Baud padrão
-		clock			:	integer; -- 50MHz de clock interno padrao
-		frame_size	:	integer
+		baud			:	integer	:=	baud;			--	Baud padrão
+		clock			:	integer	:=	50000000;	-- 50MHz de clock interno padrao
+		frame_size	:	integer	:=	word_size
 	);
 	port
 	(
@@ -29,17 +30,11 @@ architecture testbench of TB_UART_RX is
 	signal w_CLK	:	std_logic;
 	signal w_RST	:	std_logic;
 	signal w_RX		:	std_logic;
-	signal w_DATA	:	std_logic_vector(7 downto 0);
+	signal w_DATA	:	std_logic_vector(word_size-1 downto 0);
 
 begin
 
 	U_RX	:	UART_RX
-	generic map
-	(
-		baud			=> baud,
-		clock			=> 50000000,
-		frame_size	=> 8
-	)
 	port map
 	(
 		i_CLK		=>	w_CLK,
@@ -61,7 +56,7 @@ begin
 	process
 	begin
 		w_RST	<= '1';
-		wait for 10 ns;
+		wait until rising_edge(w_CLK);
 		w_RST <= '0';
 		wait;
 	end process;
@@ -69,20 +64,18 @@ begin
 	-- TX
 	process
 		variable v_RX : STD_LOGIC_VECTOR(w_DATA'range);
-		
 	begin
-		
 		w_RX <= '1';
 		wait for delay;
 		w_RX <= '0';
 		wait for delay/10;	-- Introduzir falha para teste de failsafe
 		w_RX <= '1'; 			-- Se tudo estiver bem, máquina de estados deve voltar para IDLE
-		for i in 0 to 255 loop
+		for i in 0 to (2**word_size-1) loop
 			v_RX := std_logic_vector(to_unsigned(i, w_DATA'length));
 			wait for delay;
 			w_RX <= '0';
 			wait for delay;
-			for i in 0 to 7 loop
+			for i in 0 to word_size-1 loop
 				w_RX <= v_RX(i);
 				wait for delay;
 			end loop;

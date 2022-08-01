@@ -5,18 +5,18 @@ use IEEE.NUMERIC_STD.ALL;
 entity TB_UART_TX is
 generic
 (
-	baud	:	integer	:=	2100000
+	baud			:	integer	:=	2100000;
+	word_size	:	integer	:= 8
 );
 end TB_UART_TX;
 architecture testbench of TB_UART_TX is
-
 	
 	component UART_TX is
 	generic
 	(
-		baud			:	integer				:= baud;			--	Baud padrão
-		clock			:	integer				:= 50000000;	--	50MHz de clock interno padrao
-		frame_size	:	integer				:=	8				--	Quantidade de bits no enquadramento de dados
+		baud			:	integer	:= baud;			--	Baud padrão
+		clock			:	integer	:= 50000000;	--	50MHz de clock interno padrao
+		frame_size	:	integer	:=	word_size	--	Quantidade de bits no enquadramento de dados
 	);
 	port
 	(
@@ -29,7 +29,7 @@ architecture testbench of TB_UART_TX is
 	);
 	end component;
 
-	signal w_DATA	:	std_logic_vector(7 downto 0);
+	signal w_DATA	:	std_logic_vector(word_size-1 downto 0);
 	signal w_CLK	:	std_logic;
 	signal w_RST	:	std_logic;
 	signal w_LS		:	std_logic;
@@ -62,7 +62,7 @@ begin
 	process
 	begin
 		w_RST	<= '1';
-		wait for 10 ns;
+		wait until rising_edge(w_CLK);
 		w_RST <= '0';
 		wait;
 	end process;
@@ -71,15 +71,15 @@ begin
 	process
 	begin
 		w_LS <= '1';
-		w_DATA <= "01001101";
-		wait for 100 ns;
-		w_LS <= '0';
-		wait for 100 ns;
-		w_DATA <= "11001100";
-		wait on w_RTS;
-		w_LS <= '1';
-		wait for 30 ns;
-		w_LS <= '0';
+		w_DATA <= (OTHERS => '0');
+		wait for 40 ns;
+		for i in 0 to (2**word_size-1) loop
+			w_DATA <= std_logic_vector(to_unsigned(i, w_DATA'length));
+			w_LS <= '0';
+			wait until w_RTS = '0';
+			w_LS <= '1';
+			wait until w_RTS = '1';		
+		end loop;
 		wait;
 	end process;
 

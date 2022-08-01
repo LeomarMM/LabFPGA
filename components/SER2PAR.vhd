@@ -39,23 +39,15 @@ architecture Behavioral of SER2PAR is
 begin
 ----------------------------------------------------------------------------------------------
 
-	U1 : process (i_RST, i_CLK)
+	U1 : process (i_RST, i_CLK, i_ND)
 	begin
 		
 		if (i_RST = '1') then
 			w_DATA <= (others => '1');
 			
-		else
-			if rising_edge (i_CLK) then
+		elsif(rising_edge(i_CLK) and i_ND = '1') then
+			w_DATA <= i_RX & w_DATA(word_size-1 downto 1);
 			
-				if(i_ND = '1') then
-				
-					w_DATA <= i_RX & w_DATA(word_size-1 downto 1);
-		
-				end if;
-	
-			end if;
-	
 		end if;
 
 	end process U1;

@@ -1,3 +1,28 @@
+--*************************************************************************************
+--
+-- Módulo		: UART_TX
+-- Descrição	: Componente para transmissão de dados via UART
+-- 
+-- Parâmetros Genéricos:
+--
+--					baud			--> Velocidade de transmissão em bits por segundo.
+--					clock			--> Frequência do clock global em Hertz.
+--					frame_size	--> Tamanho do enquadramento de dados do pacote.
+--
+-- Entradas	:
+--					i_CLK			--> Clock global. Precisa ser mais rápido que a frequência do baud.
+--					i_RST			--> Sinal de reset do componente.
+--					i_LS			--> Sinal de carregamento/envio. 
+--										 Em valor lógico alto, carrega o dado no serializador.
+--										 Na borda de descida, inicia a transmissão do dado.
+--					i_DATA		--> Dado a ser transmitido pelo módulo.
+--
+-- Saídas:
+--					o_RTS			--> Ready To Send, indica se o módulo está disponível para transmitir.
+--					o_TX			--> Saída serial do módulo.
+--
+--*************************************************************************************
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
@@ -5,9 +30,9 @@ entity UART_TX is
 
 	generic
 	(
-		baud			:	integer				:= 9600;			--	Baud padrão
-		clock			:	integer				:= 50000000;	--	50MHz de clock interno padrao
-		frame_size	:	integer				:=	8				--	Quantidade de bits no enquadramento de dados
+		baud			:	integer	:= 9600;			--	Baud padrão
+		clock			:	integer	:= 50000000;	--	50MHz de clock interno padrao
+		frame_size	:	integer	:=	8				--	Quantidade de bits no enquadramento de dados
 	);
 	port
 	(
