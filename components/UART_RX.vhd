@@ -1,3 +1,25 @@
+--*************************************************************************************
+--
+-- Módulo		: UART_RX
+-- Descrição	: Componente para recepção de dados via UART
+-- 
+-- Parâmetros Genéricos:
+--
+--					baud			--> Velocidade de recepção em bits por segundo.
+--					clock			--> Frequência do clock global em Hertz.
+--					frame_size	--> Tamanho do enquadramento de dados do pacote.
+--
+-- Entradas:
+--					i_CLK			--> Clock global. Precisa ser mais rápido que a frequência do baud.
+--					i_RST			--> Sinal de reset do componente.
+--					i_RX			--> Entrada do sinal do transmissor, recepção é iniciada na borda de descida
+--
+-- Saídas:
+--					o_DATA		--> Dado recebido na última transmissão.
+--					o_RECV		--> Utilizado para indicar se o componente está recebendo dados.
+--
+--*************************************************************************************
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 

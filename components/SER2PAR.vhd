@@ -1,7 +1,9 @@
 --*************************************************************************************
 --
--- Modulo	:	SER2PAR
--- Entradas	:
+-- Modulo		:	SER2PAR
+-- Descrição	:	Conversor serial-paralelo
+--
+-- Entradas:
 --					i_CLK			--> Clock global.
 --					i_RST			--> Reset assíncrono.
 --					i_ND			--> Sinal que informa o serializador para mandar um novo bit para a serial UART (RX)

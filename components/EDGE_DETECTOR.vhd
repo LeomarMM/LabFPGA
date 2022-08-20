@@ -1,7 +1,8 @@
 --*************************************************************************************
 --
---	Modulo	:	EDGE_DETECTOR
---	Entradas :
+--	Módulo		:	EDGE_DETECTOR
+-- Descrição	:	Componente de detecção de borda.
+--	Entradas:
 --					i_CLK				--> Clock global.
 --					i_RST				--> Reset assíncrono.
 --					i_SIGNAL			--> Sinal de referência

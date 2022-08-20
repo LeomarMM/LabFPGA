@@ -1,7 +1,9 @@
 --*************************************************************************************
 --
--- Modulo	:	PAR2SER
--- Entradas	:
+-- Modulo		:	PAR2SER
+-- Descriçao	:	Conversor paralelo-serial.
+--
+-- Entradas:
 --					i_CLK		--> Clock global.
 --					i_RST		--> Reset assíncrono da FPGA.
 --					i_DATA	--> Palavra de 8 bits que será serializada.

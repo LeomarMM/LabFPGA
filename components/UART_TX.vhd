@@ -9,7 +9,7 @@
 --					clock			--> Frequência do clock global em Hertz.
 --					frame_size	--> Tamanho do enquadramento de dados do pacote.
 --
--- Entradas	:
+-- Entradas:
 --					i_CLK			--> Clock global. Precisa ser mais rápido que a frequência do baud.
 --					i_RST			--> Sinal de reset do componente.
 --					i_LS			--> Sinal de carregamento/envio. 

@@ -1,7 +1,7 @@
 --*************************************************************************************
 --
---	Modulo	:	CRC8
--- Descrição: Componente para o cálculo do código CRC de oito bits, implementação
+--	Módulo		:	CRC8
+-- Descrição	:	Componente para o cálculo do código CRC de oito bits, implementação
 -- usando registradores de deslocamento.
 --
 --	Para gerar um código, deve-se alimentar o dado pelo digito mais significativo
@@ -20,7 +20,7 @@
 --					final_xor		--> Esse valor e o valor calculado serão alimentados a uma porta XOR
 --						e retornados como resultado final.
 --
---	Entradas :
+--	Entradas:
 --					i_DATA			--> Entrada para sequência de dados.
 --					i_CLK				--> Clock global.
 --					i_RST				--> Reset assíncrono.

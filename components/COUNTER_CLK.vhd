@@ -1,3 +1,21 @@
+--*************************************************************************************
+--
+-- Módulo		: COUNTER_CLK
+-- Descrição	: Componente para geraçao de clock por contador
+-- 
+-- Parâmetros Genéricos:
+--
+--					max_count	--> Contagem a ser alcançada para alternação do nível do clock
+--
+-- Entradas:
+--					i_CLK			--> Sinal de clock para o contador.
+--					i_RST			--> Sinal de reset do componente.
+--
+-- Saídas:
+--					o_CLK			--> Sinal de clock de saída baseada no estouro da contagem.
+--
+--*************************************************************************************
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
