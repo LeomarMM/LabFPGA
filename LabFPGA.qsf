@@ -38,7 +38,7 @@
 
 set_global_assignment -name FAMILY "Cyclone II"
 set_global_assignment -name DEVICE EP2C5T144C8
-set_global_assignment -name TOP_LEVEL_ENTITY MONITOR
+set_global_assignment -name TOP_LEVEL_ENTITY TOP_MONITOR
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION "13.0 SP1"
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "01:35:30  JUNE 20, 2022"
 set_global_assignment -name LAST_QUARTUS_VERSION "13.0 SP1"
@@ -52,18 +52,32 @@ set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
 set_global_assignment -name NUM_PARALLEL_PROCESSORS 8
 set_location_assignment PIN_17 -to i_CLK
-set_location_assignment PIN_41 -to o_TX
 set_location_assignment PIN_144 -to i_RST
 set_location_assignment PIN_40 -to i_RX
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_formal_verification
+set_global_assignment -name RTLV_SIMPLIFIED_LOGIC ON
+set_global_assignment -name RTLV_GROUP_RELATED_NODES ON
+set_global_assignment -name RTLV_GROUP_COMB_LOGIC_IN_CLOUD OFF
+set_global_assignment -name USE_CONFIGURATION_DEVICE ON
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH WEAK PULL-UP"
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to i_RST
+set_location_assignment PIN_9 -to o_LEDS[0]
+set_location_assignment PIN_7 -to o_LEDS[1]
+set_location_assignment PIN_3 -to o_LEDS[2]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to i_RX
 set_global_assignment -name VHDL_FILE components/COUNTER_CLK.vhd
 set_global_assignment -name VHDL_FILE components/CRC8.vhd
 set_global_assignment -name VHDL_FILE components/EDGE_DETECTOR.vhd
-set_global_assignment -name VHDL_FILE components/MONITOR.vhd
+set_global_assignment -name VHDL_FILE components/MONITOR_RX.vhd
 set_global_assignment -name VHDL_FILE components/PAR2SER.vhd
 set_global_assignment -name VHDL_FILE components/SER2PAR.vhd
 set_global_assignment -name VHDL_FILE components/UART_RX.vhd
 set_global_assignment -name VHDL_FILE components/UART_TX.vhd
+set_global_assignment -name VHDL_FILE components/helpers/DEBOUNCER.vhd
+set_global_assignment -name VHDL_FILE components/helpers/DECODER.vhd
 set_global_assignment -name VHDL_FILE testbenches/TB_CRC8.vhd
 set_global_assignment -name VHDL_FILE testbenches/TB_LOOPBACK.vhd
 set_global_assignment -name VHDL_FILE testbenches/TB_MONITOR.vhd
@@ -71,10 +85,5 @@ set_global_assignment -name VHDL_FILE testbenches/TB_PAR2SER.vhd
 set_global_assignment -name VHDL_FILE testbenches/TB_SER2PAR.vhd
 set_global_assignment -name VHDL_FILE testbenches/TB_UART_RX.vhd
 set_global_assignment -name VHDL_FILE testbenches/TB_UART_TX.vhd
-set_global_assignment -name RTLV_SIMPLIFIED_LOGIC ON
-set_global_assignment -name RTLV_GROUP_RELATED_NODES ON
-set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to i_RST
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name VHDL_FILE components/TOP_MONITOR.vhd
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

@@ -17,7 +17,7 @@ end DECODER;
 architecture Behavioral of DECODER is
 
 	constant w_ON	: std_logic := '0';
-	constant w_OFF : std_logic := '1';
+	constant w_OFF : std_logic := not w_ON;
 	
 begin
 
