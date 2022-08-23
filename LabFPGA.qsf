@@ -60,9 +60,6 @@ set_global_assignment -name RTLV_GROUP_RELATED_NODES ON
 set_global_assignment -name RTLV_GROUP_COMB_LOGIC_IN_CLOUD OFF
 set_global_assignment -name USE_CONFIGURATION_DEVICE ON
 set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH WEAK PULL-UP"
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to i_RST
 set_location_assignment PIN_9 -to o_LEDS[0]
 set_location_assignment PIN_7 -to o_LEDS[1]
@@ -86,4 +83,7 @@ set_global_assignment -name VHDL_FILE testbenches/TB_SER2PAR.vhd
 set_global_assignment -name VHDL_FILE testbenches/TB_UART_RX.vhd
 set_global_assignment -name VHDL_FILE testbenches/TB_UART_TX.vhd
 set_global_assignment -name VHDL_FILE components/TOP_MONITOR.vhd
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

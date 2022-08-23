@@ -37,9 +37,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity CRC8 is
 generic
 (
-	polynomial		:	integer range 0 to 255 := 16#31#;
-	initial_value	:	std_logic_vector(7 downto 0) := (OTHERS => '0');
-	final_xor		:	std_logic_vector(7 downto 0) := (OTHERS => '0')
+	polynomial		:	integer range 0 to 255 := 16#31#
 );
 port
 (
@@ -58,7 +56,7 @@ begin
 	process(i_CLK, i_RST, i_ENA, i_DATA)
 	begin
 		if(i_RST = '1') then
-			r_CRC <= initial_value;
+			r_CRC <= (OTHERS => '0');
 		elsif(rising_edge(i_CLK) and i_ENA = '1') then
 			r_CRC(0) <= r_CRC(7) xor i_DATA;
 			for i in 1 to 7 loop
@@ -70,5 +68,5 @@ begin
 			end loop;
 		end if;
 	end process;
-	o_CRC <= r_CRC xor final_xor;
+	o_CRC <= r_CRC;
 end behavioral;
