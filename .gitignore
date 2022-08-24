@@ -7,6 +7,7 @@
 *.wlf
 db
 incremental_db
-output_files
+output_files/*
+!output_files/LabFPGA.cdf
 simulation
 work
