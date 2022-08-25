@@ -14,20 +14,18 @@ end TB_MONITOR;
 architecture testbench of TB_MONITOR is
 
 	constant delay	:	time	:= 1 sec*(1.0/real(baud));
-	component MONITOR
+	component MONITOR_RX
 	generic
 	(
 		baud				:	integer := baud;
 		clock				:	integer := 50000000;
-		input_bytes		:	integer := input_bytes;
-		output_bytes	:	integer := output_bytes
+		input_bytes		:	integer := input_bytes
 	);
 	port
 	(
 		i_RX		:	in std_logic;
 		i_CLK		:	in std_logic;
 		i_RST		:	in std_logic;
-		o_TX		:	out std_logic;
 		o_BYTES	:	out std_logic_vector(8*input_bytes-1 downto 0)
 	);
 	end component;
@@ -35,18 +33,16 @@ architecture testbench of TB_MONITOR is
 	signal w_RX		:	std_logic;
 	signal w_CLK	:	std_logic;
 	signal w_RST	:	std_logic;
-	signal w_TX		:	std_logic;
 	signal w_BYTES	:	std_logic_vector(8*input_bytes-1 downto 0);
 	
 begin
 
-	U1 : MONITOR
+	U1 : MONITOR_RX
 	port map
 	(
 		i_RX	=> w_RX,
 		i_CLK	=> w_CLK,
 		i_RST	=> w_RST,
-		o_TX	=> w_TX,
 		o_BYTES => w_BYTES
 	);
 
