@@ -6,7 +6,7 @@ entity TB_MONITOR is
 generic
 (
 	baud				:	integer := 9600;
-	input_bytes		:	integer := 3;
+	input_bytes		:	integer := 1;
 	output_bytes	:	integer := 3
 );
 end TB_MONITOR;

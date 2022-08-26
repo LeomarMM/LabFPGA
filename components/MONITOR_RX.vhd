@@ -1,6 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
 entity MONITOR_RX is
 generic
 (
@@ -19,7 +19,9 @@ end MONITOR_RX;
 
 architecture behavioral of MONITOR_RX is
 
-	type top_state is (IDLE, RECV, FILL_BUFFER, CRC_CALC, CRC_CHECK, FILL_OUTPUT, RESET_BUFFER);
+	type top_state is (IDLE, RECV, FILL_BUFFER, 
+	CRC_FEED, CRC_CHECK, CRC_COUNT,
+	FILL_OUTPUT, RESET_BUFFER);
 	attribute syn_encoding : string;
 	attribute syn_encoding of top_state :  type is "safe";
 	
@@ -70,7 +72,7 @@ architecture behavioral of MONITOR_RX is
 	signal w_RECV		:	std_logic;
 	signal t_STATE		:	top_state;
 	signal r_BUFFER	:	std_logic_vector(buffer_size downto 0);
-	signal r_COUNTER	:	integer range 0 to buffer_size-1;
+	signal r_COUNTER	:	integer range 0 to buffer_size-1 := buffer_size-1;
 	signal r_OUTPUT	:	std_logic_vector(output_size-1 downto 0);
 
 begin
@@ -83,7 +85,7 @@ begin
 	port map
 	(
 		i_DATA	=> w_CRC_DATA,
-		i_CLK		=> "not"(i_CLK),
+		i_CLK		=> i_CLK,
 		i_RST		=> w_CRC_RST,
 		i_ENA		=>	w_CRC_ENA,
 		o_CRC		=> w_CRC_OUT
@@ -101,11 +103,11 @@ begin
 	
 	
 	-- Registrador de bufferização
-	process(i_CLK, i_RST, w_BUF_RST, t_STATE, w_DATA_RX, r_BUFFER)
+	process(i_CLK, i_RST, w_BUF_ENA, w_BUF_RST, t_STATE, w_DATA_RX, r_BUFFER)
 	begin
 		if(w_BUF_RST = '1' or i_RST = '1') then
 			r_BUFFER <= (0 => '1', OTHERS => '0');
-		elsif(rising_edge(i_CLK) and t_STATE = FILL_BUFFER) then
+		elsif(rising_edge(i_CLK) and w_BUF_ENA = '1') then
 			r_BUFFER <= r_BUFFER(output_size downto 0) & w_DATA_RX;
 		end if;
 	end process;
@@ -150,15 +152,17 @@ begin
 					end if;
 				when FILL_BUFFER =>
 					if(r_BUFFER(r_BUFFER'high) = '1') then
-						t_STATE <= CRC_CALC;
+						t_STATE <= CRC_FEED;
 					else
 						t_STATE <= IDLE;
 					end if;
-				when CRC_CALC =>
+				when CRC_FEED =>
+					t_STATE <= CRC_COUNT;
+				when CRC_COUNT =>
 					if(r_COUNTER = 0) then
 						t_STATE <= CRC_CHECK;
 					else
-						t_STATE <= CRC_CALC;
+						t_STATE <= CRC_FEED;
 					end if;
 				when CRC_CHECK =>
 					if(r_BUFFER(7 downto 0) = w_CRC_OUT) then
@@ -191,12 +195,26 @@ begin
 				w_CNT_RST <= '1';
 				w_CRC_ENA <= '0';
 				w_CRC_RST <= '1';
-			when CRC_CALC =>
+			when FILL_BUFFER =>
+				w_BUF_ENA <= '1';
+				w_BUF_RST <= '0';
+				w_CNT_ENA <= '0';
+				w_CNT_RST <= '1';
+				w_CRC_ENA <= '0';
+				w_CRC_RST <= '1';
+			when CRC_FEED =>
+				w_BUF_ENA <= '0';
+				w_BUF_RST <= '0';
+				w_CNT_ENA <= '0';
+				w_CNT_RST <= '0';
+				w_CRC_ENA <= '1';
+				w_CRC_RST <= '0';
+			when CRC_COUNT =>
 				w_BUF_ENA <= '0';
 				w_BUF_RST <= '0';
 				w_CNT_ENA <= '1';
 				w_CNT_RST <= '0';
-				w_CRC_ENA <= '1';
+				w_CRC_ENA <= '0';
 				w_CRC_RST <= '0';
 			when CRC_CHECK =>
 				w_BUF_ENA <= '0';
@@ -205,20 +223,13 @@ begin
 				w_CNT_RST <= '0';
 				w_CRC_ENA <= '1';
 				w_CRC_RST <= '0';
-			when FILL_BUFFER =>
-				w_BUF_ENA <= '1';
-				w_BUF_RST <= '0';
-				w_CNT_ENA <= '0';
-				w_CNT_RST <= '1';
-				w_CRC_ENA <= '0';
-				w_CRC_RST <= '1';
 			when FILL_OUTPUT =>
 				w_BUF_ENA <= '0';
 				w_BUF_RST <= '0';
 				w_CNT_ENA <= '0';
 				w_CNT_RST <= '1';
 				w_CRC_ENA <= '0';
-				w_CRC_RST <= '1';
+				w_CRC_RST <= '0';
 			when RESET_BUFFER =>
 				w_BUF_ENA <= '0';
 				w_BUF_RST <= '1';
