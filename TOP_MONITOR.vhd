@@ -1,6 +1,5 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity TOP_MONITOR is
 generic
@@ -24,9 +23,9 @@ architecture rtl of TOP_MONITOR is
 	component MONITOR_RX is
 	generic
 	(
-		baud				:	integer := 9600;
-		clock				:	integer := 50000000;
-		input_bytes		:	integer := 1
+		baud				:	integer := baud;
+		clock				:	integer := clock;
+		input_bytes		:	integer := input_bytes
 	);
 	port
 	(

@@ -13,12 +13,9 @@
 -- Parâmetros Genéricos:
 --
 --					polynomial		--> Polinômio gerador.
---						ex.: Para x^8+x^5+x^4+1, usar 2#00110001# ou 16#31#
---						Ao escrever o polinômio, x^4 é omitido.
+--						ex.: Para x^8+x^5+x^4+1, usar "00110001" ou x"31"
+--						Ao escrever o polinômio, x^8 é omitida.
 --
---					initial_value	--> Valor de reset dos registradores.
---					final_xor		--> Esse valor e o valor calculado serão alimentados a uma porta XOR
---						e retornados como resultado final.
 --
 --	Entradas:
 --					i_DATA			--> Entrada para sequência de dados.
@@ -32,12 +29,11 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.NUMERIC_STD.ALL;
 
 entity CRC8 is
 generic
 (
-	polynomial		:	integer range 0 to 255 := 16#31#
+	polynomial		:	std_logic_vector(7 downto 0) := x"31"
 );
 port
 (
@@ -50,7 +46,6 @@ port
 end CRC8;
 
 architecture behavioral of CRC8 is
-	constant c_poly	:	std_logic_vector(7 downto 0) := std_logic_vector(to_unsigned(polynomial, 8));
 	signal r_CRC		:	std_logic_vector(7 downto 0);
 begin
 	process(i_CLK, i_RST, i_ENA, i_DATA)
@@ -60,7 +55,7 @@ begin
 		elsif(rising_edge(i_CLK) and i_ENA = '1') then
 			r_CRC(0) <= r_CRC(7) xor i_DATA;
 			for i in 1 to 7 loop
-				if(c_poly(i) = '1') then
+				if(polynomial(i) = '1') then
 					r_CRC(i) <= r_CRC(7) xor r_CRC(i-1);
 				else
 					r_CRC(i) <= r_CRC(i-1);

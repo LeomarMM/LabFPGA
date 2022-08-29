@@ -148,7 +148,6 @@ begin
 	begin
 		if(i_RST = '1') then
 			t_STATE <= IDLE;
-			o_DATA <= (OTHERS => '1');
 		elsif(falling_edge(w_PCLK)) then
 			case t_STATE is
 				when IDLE	=>
@@ -167,7 +166,6 @@ begin
 					end if;
 				when RECV =>
 					if(w_DATA(0) = '0') then
-						o_DATA <= w_DATA(frame_size downto 1);
 						t_STATE <= IDLE;
 					else
 						t_STATE <= RECV;
@@ -175,5 +173,14 @@ begin
 			end case;
 		end if;
 	end process UART_MACH;
+	
+	process(i_CLK, i_RST, w_DATA, t_STATE)
+	begin
+		if(i_RST = '1') then
+			o_DATA <= (OTHERS => '1');
+		elsif(falling_edge(i_CLK) and w_DATA(0) = '0') then
+			o_DATA <= w_DATA(frame_size downto 1);
+		end if;
+	end process;
 
 end behavioral;

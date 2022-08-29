@@ -31,7 +31,7 @@ architecture behavioral of MONITOR_RX is
 	component CRC8
 	generic
 	(
-		polynomial		:	integer range 0 to 255 := 16#2F#
+		polynomial		:	std_logic_vector(7 downto 0) := x"2F"
 	);
 	port
 	(
@@ -85,7 +85,7 @@ begin
 	port map
 	(
 		i_DATA	=> w_CRC_DATA,
-		i_CLK		=> i_CLK,
+		i_CLK		=> "not"(i_CLK),
 		i_RST		=> w_CRC_RST,
 		i_ENA		=>	w_CRC_ENA,
 		o_CRC		=> w_CRC_OUT
@@ -107,7 +107,7 @@ begin
 	begin
 		if(w_BUF_RST = '1' or i_RST = '1') then
 			r_BUFFER <= (0 => '1', OTHERS => '0');
-		elsif(rising_edge(i_CLK) and w_BUF_ENA = '1') then
+		elsif(falling_edge(i_CLK) and w_BUF_ENA = '1') then
 			r_BUFFER <= r_BUFFER(output_size downto 0) & w_DATA_RX;
 		end if;
 	end process;
@@ -117,7 +117,7 @@ begin
 	begin
 		if(w_CNT_RST = '1') then
 			r_COUNTER <= buffer_size-1;
-		elsif(rising_edge(i_CLK) and w_CNT_ENA = '1') then
+		elsif(falling_edge(i_CLK) and w_CNT_ENA = '1') then
 			r_COUNTER <= r_COUNTER - 1;
 		end if;
 	end process;
@@ -127,16 +127,17 @@ begin
 	begin
 		if(i_RST = '1') then
 			r_OUTPUT <= (OTHERS => '0');
-		elsif(rising_edge(i_CLK) and t_STATE = FILL_OUTPUT) then
+		elsif(falling_edge(i_CLK) and t_STATE = FILL_OUTPUT) then
 			r_OUTPUT <= r_BUFFER(buffer_size-1 downto 8);
 		end if;
 	end process;
 	
+	-- Lógica de transição de estados
 	process(i_CLK, i_RST, t_STATE, r_BUFFER)
 	begin
 		if(i_RST = '1') then
 			t_STATE <= IDLE;
-		elsif(falling_edge(i_CLK)) then
+		elsif(rising_edge(i_CLK)) then
 			case t_STATE is
 				when IDLE =>
 					if(w_RECV = '1') then
@@ -157,13 +158,13 @@ begin
 						t_STATE <= IDLE;
 					end if;
 				when CRC_FEED =>
-					t_STATE <= CRC_COUNT;
-				when CRC_COUNT =>
 					if(r_COUNTER = 0) then
 						t_STATE <= CRC_CHECK;
 					else
-						t_STATE <= CRC_FEED;
+						t_STATE <= CRC_COUNT;
 					end if;
+				when CRC_COUNT =>
+						t_STATE <= CRC_FEED;
 				when CRC_CHECK =>
 					if(r_BUFFER(7 downto 0) = w_CRC_OUT) then
 						t_STATE <= FILL_OUTPUT;
@@ -178,6 +179,7 @@ begin
 		end if;
 	end process;
 	
+	-- Barramentos dependentes de estados
 	process(i_CLK, i_RST, t_STATE)
 	begin
 		case t_STATE is
@@ -221,7 +223,7 @@ begin
 				w_BUF_RST <= '0';
 				w_CNT_ENA <= '0';
 				w_CNT_RST <= '0';
-				w_CRC_ENA <= '1';
+				w_CRC_ENA <= '0';
 				w_CRC_RST <= '0';
 			when FILL_OUTPUT =>
 				w_BUF_ENA <= '0';
@@ -229,7 +231,7 @@ begin
 				w_CNT_ENA <= '0';
 				w_CNT_RST <= '1';
 				w_CRC_ENA <= '0';
-				w_CRC_RST <= '0';
+				w_CRC_RST <= '1';
 			when RESET_BUFFER =>
 				w_BUF_ENA <= '0';
 				w_BUF_RST <= '1';

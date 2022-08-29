@@ -42,7 +42,7 @@ begin
 			w_SIGNAL_R	<=	'0';																		
 			w_SIGNAL_S	<=	'0';																		
 			w_SIGNAL_T	<=	'0';
-		elsif falling_edge (i_CLK) then												
+		elsif rising_edge (i_CLK) then												
 			w_SIGNAL_R <= i_SIGNAL;																			
 			w_SIGNAL_S <= w_SIGNAL_R;																		
 			w_SIGNAL_T <= w_SIGNAL_S;																		
