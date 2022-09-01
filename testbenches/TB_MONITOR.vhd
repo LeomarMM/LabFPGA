@@ -6,7 +6,7 @@ entity TB_MONITOR is
 generic
 (
 	baud				:	integer := 9600;
-	input_bytes		:	integer := 1;
+	input_bytes		:	integer := 2;
 	output_bytes	:	integer := 3
 );
 end TB_MONITOR;
@@ -69,8 +69,9 @@ begin
 		variable v_RX : STD_LOGIC_VECTOR(7 downto 0);
 	begin
 		w_RX <= '1';
-		for i in 0 to 255 loop
-			v_RX := std_logic_vector(to_unsigned(i, 8));
+		for i in 0 to 2 loop
+			if(i /= 2) then v_RX := std_logic_vector(to_unsigned(i, 8));
+			else v_RX := std_logic_vector(to_unsigned(47, 8)); end if;
 			wait for delay;
 			w_RX <= '0';
 			wait for delay;
