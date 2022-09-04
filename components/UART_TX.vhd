@@ -8,6 +8,7 @@
 --					baud			--> Velocidade de transmissão em bits por segundo.
 --					clock			--> Frequência do clock global em Hertz.
 --					frame_size	--> Tamanho do enquadramento de dados do pacote.
+--					stop_bits	--> Quantidade de bits de parada no fim do pacote.
 --
 -- Entradas:
 --					i_CLK			--> Clock global. Precisa ser mais rápido que a frequência do baud.
@@ -32,7 +33,8 @@ entity UART_TX is
 	(
 		baud			:	integer	:= 9600;			--	Baud padrão
 		clock			:	integer	:= 50000000;	--	50MHz de clock interno padrao
-		frame_size	:	integer	:=	8				--	Quantidade de bits no enquadramento de dados
+		frame_size	:	integer	:=	8;				--	Quantidade de bits no enquadramento de dados
+		stop_bits	:	integer	:= 1				--	Bits de parada
 	);
 	port
 	(
@@ -48,21 +50,24 @@ end UART_TX;
 
 architecture behavioral of UART_TX is
 
-	type send_state is (IDLE, SEND);
+	type send_state is (IDLE, CLOCK_COUNT, SEND, DATA_COUNT, CHECK_END);
 	attribute syn_encoding : string;
 	attribute syn_encoding of send_state : type is "safe";
 
 	constant phy_size	:	integer := frame_size + 2;
-	component COUNTER_CLK
+
+	component COUNTER
 	generic
 	(
-		max_count	:	integer := clock / (2*baud)
+		max_count : integer
 	);
 	port
 	(
-		i_CLK	:	in std_logic;
-		i_RST	:	in std_logic;
-		o_CLK	:	out std_logic
+		i_CLK		:	in std_logic;
+		i_RST		:	in std_logic;
+		i_ENA		:	in std_logic := '1';
+		o_COUNT	:	out integer range 0 to max_count;
+		o_EQ		:	out std_logic
 	);
 	end component;
 
@@ -94,32 +99,51 @@ architecture behavioral of UART_TX is
 	);
 	end component;
 
+	signal w_CC1_RST	:	std_logic;
+	signal w_CC1_EQ	:	std_logic;
+	signal w_CC2_ENA	:	std_logic;
+	signal w_CC2_RST	:	std_logic;
+	signal w_CC2_EQ	:	std_logic;
 	signal w_CCLK		:	std_logic;
 	signal w_DATA		:	std_logic_vector(phy_size-1 downto 0);
 	signal w_LOAD		:	std_logic;
 	signal w_LS_DOWN	:	std_logic;
 	signal w_ND			:	std_logic;
-	signal w_PCLK		:	std_logic;
-	signal w_RST		:	std_logic;
 	signal w_TX			:	std_logic;
-	signal r_BITC		:	integer range 0 to phy_size+1;
 	signal t_STATE		:	send_state;
 
 begin
 
-	CC1	:	COUNTER_CLK
+	CC1	:	COUNTER
+	generic map
+	(
+		max_count => clock / baud
+	)
 	port map
 	(
-		i_CLK	=> i_CLK,
-		i_RST => w_RST,
-		o_CLK => w_CCLK
+		i_CLK	=>	i_CLK,
+		i_RST	=>	w_CC1_RST,
+		o_EQ	=> w_CC1_EQ
+	);
+
+	CC2	:	COUNTER
+	generic map
+	(
+		max_count => phy_size+stop_bits
+	)
+	port map
+	(
+		i_CLK	=>	i_CLK,
+		i_RST	=>	w_CC2_RST,
+		i_ENA => w_CC2_ENA,
+		o_EQ	=> w_CC2_EQ
 	);
 
 	P2S	:	PAR2SER
 	port map
 	(
 		i_RST		=> i_RST,
-		i_CLK		=> w_PCLK,
+		i_CLK		=> i_CLK,
 		i_LOAD	=> w_LOAD,
 		i_ND		=> w_ND,
 		i_DATA	=> w_DATA,
@@ -135,63 +159,45 @@ begin
 		o_EDGE_DOWN 	=> w_LS_DOWN
 	);
 
-	w_DATA <= '1' & i_DATA & '0';
-
-	process(t_STATE, i_CLK, w_CCLK, w_TX)
-	begin
-		case t_STATE is
-		when IDLE 	=>
-			w_RST <= '1';
-			w_LOAD <= '1';
-			o_RTS <= '1';
-			w_PCLK <= i_CLK;
-			w_ND <= '0';
-			o_TX <= '1';
-		when others	=>
-			w_RST <= '0';
-			w_LOAD <= '0';
-			o_RTS <= '0';
-			w_ND <= '1';
-			w_PCLK <= w_CCLK;
-			o_TX <= w_TX;
-		end case;
-	end process;
-
-	process(i_RST, w_PCLK, w_LS_DOWN, r_BITC)
+	process(i_RST, i_CLK)
 	begin
 		if(i_RST = '1') then
 			t_STATE <= IDLE;
-		elsif(falling_edge(w_PCLK)) then
+		elsif(falling_edge(i_CLK)) then
 			case t_STATE is
-			
 				when IDLE =>
 					if(w_LS_DOWN = '1') then
 						t_STATE <= SEND;
 					else
 						t_STATE <= IDLE;
 					end if;
-
+				when CLOCK_COUNT =>
+					if(w_CC1_EQ = '1') then
+						t_STATE <= SEND;
+					else
+						t_STATE <= CLOCK_COUNT;
+					end if;
 				when SEND =>
-					if(r_BITC = phy_size) then
+					t_STATE <= DATA_COUNT;
+				when DATA_COUNT =>
+					t_STATE <= CHECK_END;
+				when CHECK_END =>
+					if(w_CC2_EQ = '1') then
 						t_STATE <= IDLE;
 					else
-						t_STATE <= SEND;
+						t_STATE <= CLOCK_COUNT;
 					end if;
-
 			end case;
 		end if;
 	end process;
 
-	process(i_RST, w_PCLK, t_STATE)
-	begin
-		if(i_RST = '1') then
-			r_BITC <= 0;
-		elsif(falling_edge(w_PCLK) and t_STATE = SEND) then
-			if(r_BITC /= phy_size) then r_BITC <= r_BITC + 1;
-			else
-				r_BITC <= 0;
-			end if;
-		end if;
-	end process;
+	o_RTS <= w_LOAD;
+	o_TX <= w_TX;
+	w_CC1_RST <= '0' when t_STATE = CLOCK_COUNT else '1';
+	w_CC2_ENA <= '1' when t_STATE = DATA_COUNT else '0';
+	w_CC2_RST <= '1' when t_STATE = IDLE else '0';
+	w_DATA <= '1' & i_DATA & '0';
+	w_LOAD <= '1' when t_STATE = IDLE else '0';
+	w_ND <= '1' when t_STATE = SEND else '0';
 
 end behavioral;

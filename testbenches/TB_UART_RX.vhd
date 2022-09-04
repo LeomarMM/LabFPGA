@@ -67,9 +67,6 @@ begin
 	begin
 		w_RX <= '1';
 		wait for delay;
-		w_RX <= '0';
-		wait for delay/10;	-- Introduzir falha para teste de failsafe
-		w_RX <= '1'; 			-- Se tudo estiver bem, máquina de estados deve voltar para IDLE
 		for i in 0 to (2**word_size-1) loop
 			v_RX := std_logic_vector(to_unsigned(i, w_DATA'length));
 			wait for delay;

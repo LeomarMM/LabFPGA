@@ -46,7 +46,7 @@ port
 end CRC8;
 
 architecture behavioral of CRC8 is
-	signal r_CRC		:	std_logic_vector(7 downto 0);
+	signal r_CRC		:	std_logic_vector(7 downto 0) := (OTHERS => '0');
 begin
 	process(i_CLK, i_RST, i_ENA, i_DATA)
 	begin

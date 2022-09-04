@@ -42,17 +42,19 @@ end UART_RX;
 
 architecture behavioral of UART_RX is
 
-	type recv_state is (IDLE, START, RECV);
+	type recv_state is (IDLE, COUNT, ACQUIRE, IDLE_COUNT, CHECK_END);
 	attribute syn_encoding : string;
 	attribute syn_encoding of recv_state : type is "safe";
 
-	signal w_ND				:	std_logic;
-	signal t_STATE			:	recv_state;
-	signal w_RST			:	std_logic;
-	signal w_CCLK			:	std_logic;
-	signal w_PCLK			:	std_logic;
+	signal w_CNT_EQ		:	std_logic;
+	signal w_CNT_RESET	:	std_logic;
 	signal w_DATA			:	std_logic_vector(frame_size downto 0);
+	signal w_ND				:	std_logic;
+	signal w_RECV			:	std_logic;
 	signal w_RX_DOWN		:	std_logic;
+	signal w_S2P_RESET	:	std_logic;
+	signal r_DATA			:	std_logic_vector(frame_size-1 downto 0);
+	signal t_STATE			:	recv_state;
 
 	component EDGE_DETECTOR
 	port
@@ -79,27 +81,31 @@ architecture behavioral of UART_RX is
 	);
 	end component;
 
-	component COUNTER_CLK
+	component COUNTER
 	generic
 	(
 		max_count	:	integer := clock / (2*baud)
 	);
 	port
 	(
-		i_CLK	:	in std_logic;
-		i_RST	:	in std_logic;
-		o_CLK	:	out std_logic
+		i_CLK		:	in std_logic;
+		i_RST		:	in std_logic;
+		o_COUNT	:	out integer range 0 to max_count;
+		o_EQ		:	out std_logic
 	);
 	end component;
 
 begin
 
-	CC1	:	COUNTER_CLK
+	o_RECV <= w_RECV;
+	o_DATA <= r_DATA;
+
+	CC1	:	COUNTER
 	port map
 	(
-		i_CLK	=> i_CLK,
-		i_RST => w_RST,
-		o_CLK => w_CCLK
+		i_CLK	=>	i_CLK,
+		i_RST	=>	w_CNT_RESET,
+		o_EQ	=> w_CNT_EQ
 	);
 
 	ED1	:	EDGE_DETECTOR
@@ -114,72 +120,89 @@ begin
 	S2P	:	SER2PAR
 	port map
 	(
-		i_RST		=>	w_RST,
-		i_CLK		=>	w_CCLK,
+		i_RST		=>	w_S2P_RESET,
+		i_CLK		=>	i_CLK,
 		i_ND		=>	w_ND,
 		o_DATA	=>	w_DATA,
 		i_RX		=>	i_RX
 	);
 
 	-- Saídas Dependentes dos Estados
-	process(t_STATE, i_CLK, w_CCLK)
+	process(t_STATE, i_CLK)
 	begin
 		case t_STATE is
 			when IDLE =>
-				o_RECV <= '0';
-				w_RST <= '1';
+				w_RECV <= '0';
+				w_CNT_RESET <= '1';
+				w_S2P_RESET <= '1';
 				w_ND <= '0';
-				w_PCLK <= i_CLK;
-			when START =>
-				o_RECV <= '1';
-				w_RST <= '0';
+			when COUNT	=>
+				w_RECV <= '1';
+				w_CNT_RESET <= '0';
+				w_S2P_RESET <= '0';
+				w_ND <= '0';
+			when ACQUIRE =>
+				w_RECV <= '1';
+				w_CNT_RESET <= '1';
+				w_S2P_RESET <= '0';
 				w_ND <= '1';
-				w_PCLK <= w_CCLK;
-			when RECV =>
-				o_RECV <= '1';
-				w_RST <= '0';
-				w_ND <= '1';
-				w_PCLK <= w_CCLK;
+			when IDLE_COUNT =>
+				w_RECV <= '1';
+				w_CNT_RESET <= '0';
+				w_S2P_RESET <= '0';
+				w_ND <= '0';
+			when CHECK_END =>
+				w_RECV <= '1';
+				w_CNT_RESET <= '1';
+				w_S2P_RESET <= '0';
+				w_ND <= '0';
 		end case;
 	end process;
 	
 	-- Transição de Estados
-	UART_MACH : process(w_PCLK, i_RX, i_RST, t_STATE, w_RX_DOWN)
+	UART_MACH : process(i_CLK, i_RX, i_RST, t_STATE, w_RX_DOWN)
 	begin
 		if(i_RST = '1') then
 			t_STATE <= IDLE;
-		elsif(falling_edge(w_PCLK)) then
+		elsif(falling_edge(i_CLK)) then
 			case t_STATE is
 				when IDLE	=>
 					if(w_RX_DOWN = '1') then
-						t_STATE <= START;
+						t_STATE <= COUNT;
 					else
 						t_STATE <= IDLE;
 					end if;
-				when START	=>
-					if(w_DATA(frame_size) = '1') then
-						t_STATE <= IDLE;
-					elsif(w_DATA(frame_size) = '0') then
-						t_STATE <= RECV;
+				when COUNT	=>
+					if(w_CNT_EQ = '1') then
+						t_STATE <= ACQUIRE;
 					else
-						t_STATE <= START;
+						t_STATE <= COUNT;
 					end if;
-				when RECV =>
+				when ACQUIRE =>
+					t_STATE <= IDLE_COUNT;
+				when IDLE_COUNT =>
+					if(w_CNT_EQ = '1') then
+						t_STATE <= CHECK_END;
+					else
+						t_STATE <= IDLE_COUNT;
+					end if;
+				when CHECK_END =>
 					if(w_DATA(0) = '0') then
 						t_STATE <= IDLE;
 					else
-						t_STATE <= RECV;
+						t_STATE <= COUNT;
 					end if;
 			end case;
 		end if;
 	end process UART_MACH;
+
 	
 	process(i_CLK, i_RST, w_DATA, t_STATE)
 	begin
 		if(i_RST = '1') then
-			o_DATA <= (OTHERS => '1');
+			r_DATA <= (OTHERS => '1');
 		elsif(falling_edge(i_CLK) and w_DATA(0) = '0') then
-			o_DATA <= w_DATA(frame_size downto 1);
+			r_DATA <= w_DATA(frame_size downto 1);
 		end if;
 	end process;
 

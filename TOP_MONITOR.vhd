@@ -48,9 +48,10 @@ architecture rtl of TOP_MONITOR is
 	);
 	end component;
 
-	signal w_CLK	: std_logic;
-	signal w_RST	: std_logic;
-	signal w_BYTES	: std_logic_vector(8*input_bytes-1 downto 0);
+	signal w_CLK		: std_logic;
+	signal w_LOCKED	: std_logic;
+	signal w_RST		: std_logic;
+	signal w_BYTES		: std_logic_vector(8*input_bytes-1 downto 0);
 
 begin
 	
@@ -60,7 +61,7 @@ begin
 		refclk	=> i_CLK,
 		rst		=> i_RST,
 		outclk_0	=> w_CLK,
-		locked	=> w_RST
+		locked	=> w_LOCKED
 	);
 
 	U2 : MONITOR_RX
@@ -68,12 +69,13 @@ begin
 	(
 		i_RX		=> i_RX,
 		i_CLK		=> w_CLK,
-		i_RST		=> "not"(w_RST),
+		i_RST		=> w_RST,
 		o_TX		=>	o_TX,
 		o_BYTES	=> w_BYTES
 	);
 
 	o_BYTES <= w_BYTES(8 downto 0);
-	o_RST	<=	w_RST;
+	o_RST	<=	w_LOCKED;
+	w_RST <= not w_LOCKED;
 
 end rtl;

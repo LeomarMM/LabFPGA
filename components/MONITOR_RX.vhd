@@ -30,6 +30,22 @@ architecture behavioral of MONITOR_RX is
 	constant buffer_size : integer := 8*(input_bytes+1);
 	constant output_size : integer := 8*input_bytes;
 
+	component COUNTER
+	generic
+	(
+		max_count	:	integer := buffer_size-1;
+		reverse		:	std_logic := '1'
+	);
+	port
+	(
+		i_CLK		:	in std_logic;
+		i_RST		:	in std_logic;
+		i_ENA		:	in std_logic;
+		o_COUNT	:	out integer range 0 to max_count;
+		o_EQ		:	out std_logic
+	);
+	end component;
+
 	component CRC8
 	generic
 	(
@@ -82,7 +98,10 @@ architecture behavioral of MONITOR_RX is
 	constant NAK		:	std_logic_vector(7 downto 0) := x"15";
 	signal w_BUF_RST	:	std_logic;
 	signal w_BUF_CRC	:	std_logic_vector(buffer_size-1 downto 0);
+	signal w_CNT_ENA	:	std_logic;
+	signal w_CNT_EQ	:	std_logic;
 	signal w_CNT_RST	:	std_logic;
+	signal w_CNT_VAL	:	integer range 0 to buffer_size - 1;
 	signal w_CRC_DATA	:	std_logic;
 	signal w_CRC_ENA	:	std_logic;
 	signal w_CRC_OUT	:	std_logic_vector(7 downto 0);
@@ -92,19 +111,29 @@ architecture behavioral of MONITOR_RX is
 	signal w_LS			:	std_logic;
 	signal w_RECV		:	std_logic;
 	signal w_RTS		:	std_logic;
-	signal r_BUFFER	:	std_logic_vector(buffer_size downto 0);
-	signal r_COUNTER	:	integer range 0 to buffer_size-1 := buffer_size-1;
-	signal r_OUTPUT	:	std_logic_vector(output_size-1 downto 0);
-	signal r_EQ			:	std_logic;
+	signal r_BUFFER	:	std_logic_vector(buffer_size downto 0) := (0 => '1', OTHERS => '0');
+	signal r_OUTPUT	:	std_logic_vector(output_size-1 downto 0) := (OTHERS => '0');
+	signal r_EQ			:	std_logic := '0';
 	signal t_STATE		:	top_state;
 
 begin
 
 	o_BYTES <= r_OUTPUT;
 	w_BUF_CRC <= r_BUFFER(buffer_size-1 downto 8) & x"00";
-	w_CRC_DATA <= w_BUF_CRC(r_COUNTER);
+	w_CRC_DATA <= w_BUF_CRC(w_CNT_VAL);
 
-	W_DATA_TX <= ACK when r_EQ = '1' else NAK;
+	w_DATA_TX <= ACK when r_EQ = '1' else NAK;
+	w_CNT_ENA <= '1' when t_STATE = CRC_COUNT else '0';
+
+	CC1	:	COUNTER
+	port map
+	(
+		i_CLK	=>	"not"(i_CLK),
+		i_RST	=>	w_CNT_RST,
+		i_ENA => w_CNT_ENA,
+		o_EQ	=> w_CNT_EQ,
+		o_COUNT => w_CNT_VAL
+	);
 
 	U1	: CRC8
 	port map
@@ -138,50 +167,48 @@ begin
 	);
 
 	-- Registrador de bufferização
-	process(i_CLK, w_BUF_RST, t_STATE, w_DATA_RX, r_BUFFER)
+	process(i_CLK, w_BUF_RST)
 	begin
 		if(w_BUF_RST = '1') then
 			r_BUFFER <= (0 => '1', OTHERS => '0');
-		elsif(falling_edge(i_CLK) and t_STATE = FILL_BUFFER) then
-			r_BUFFER <= r_BUFFER(output_size downto 0) & w_DATA_RX;
+		elsif(falling_edge(i_CLK)) then
+			if(t_STATE = FILL_BUFFER) then
+				r_BUFFER <= r_BUFFER(output_size downto 0) & w_DATA_RX;
+			end if;
 		end if;
 	end process;
 	
-	-- Registrador de contagem
-	process(i_CLK, i_RST, w_CNT_RST, t_STATE)
-	begin
-		if(w_CNT_RST = '1') then
-			r_COUNTER <= buffer_size-1;
-		elsif(falling_edge(i_CLK) and t_STATE = CRC_COUNT) then
-			r_COUNTER <= r_COUNTER - 1;
-		end if;
-	end process;
 	
 	-- Registrador de saída
-	process(i_CLK, i_RST, t_STATE, r_BUFFER, r_EQ)
+	process(i_CLK, i_RST)
 	begin
 		if(i_RST = '1') then
 			r_OUTPUT <= (OTHERS => '0');
-		elsif(falling_edge(i_CLK) and (t_STATE = FILL_OUTPUT and r_EQ = '1')) then
-			r_OUTPUT <= r_BUFFER(buffer_size-1 downto 8);
+		elsif(falling_edge(i_CLK)) then
+			if(t_STATE = FILL_OUTPUT and r_EQ = '1') then
+				r_OUTPUT <= r_BUFFER(buffer_size-1 downto 8);
+			end if;
 		end if;
 	end process;
 	
-	-- Registrador de saída
-	process(i_CLK, i_RST, t_STATE, r_BUFFER, w_CRC_OUT)
+	-- Registrador CRC
+	process(i_CLK, i_RST)
 	begin
 		if(i_RST = '1') then
 			r_EQ <= '0';
-		elsif(falling_edge(i_CLK) and t_STATE = CRC_CHECK) then
-			if(r_BUFFER(7 downto 0) = w_CRC_OUT) then
-				r_EQ <= '1';
-			else r_EQ <= '0';
+		elsif(falling_edge(i_CLK)) then
+			if(t_STATE = CRC_CHECK) then
+				if(r_BUFFER(7 downto 0) = w_CRC_OUT) then
+					r_EQ <= '1';
+				else 
+					r_EQ <= '0';
+				end if;
 			end if;
 		end if;
 	end process;
 	
 	-- Lógica de transição de estados
-	process(i_CLK, i_RST, t_STATE, r_BUFFER)
+	process(i_CLK, i_RST)
 	begin
 		if(i_RST = '1') then
 			t_STATE <= RESET_BUFFER;
@@ -206,7 +233,7 @@ begin
 						t_STATE <= IDLE;
 					end if;
 				when CRC_FEED =>
-					if(r_COUNTER = 0) then
+					if(w_CNT_EQ = '1') then
 						t_STATE <= CRC_CHECK;
 					else
 						t_STATE <= CRC_COUNT;
@@ -236,7 +263,7 @@ begin
 	end process;
 	
 	-- Barramentos dependentes de estados
-	process(i_CLK, i_RST, t_STATE)
+	process(t_STATE)
 	begin
 		case t_STATE is
 			when IDLE =>
