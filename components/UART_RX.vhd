@@ -26,9 +26,9 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity UART_RX is
 	generic
 	(
-		baud			:	integer				:= 9600;			--	Baud padrão
-		clock			:	integer				:= 50000000;	--	50MHz de clock interno padrao
-		frame_size	:	integer				:=	8				--	Quantidade de bits no enquadramento de dados
+		baud			:	integer				:= 9600;
+		clock			:	integer				:= 50000000;
+		frame_size	:	integer				:=	8
 	);
 	port
 	(
@@ -97,9 +97,6 @@ architecture behavioral of UART_RX is
 
 begin
 
-	o_RECV <= w_RECV;
-	o_DATA <= r_DATA;
-
 	CC1	:	COUNTER
 	port map
 	(
@@ -127,38 +124,16 @@ begin
 		i_RX		=>	i_RX
 	);
 
-	-- Saídas Dependentes dos Estados
-	process(t_STATE, i_CLK)
+	-- Registradores de saída
+	process(i_CLK, i_RST, w_DATA, t_STATE)
 	begin
-		case t_STATE is
-			when IDLE =>
-				w_RECV <= '0';
-				w_CNT_RESET <= '1';
-				w_S2P_RESET <= '1';
-				w_ND <= '0';
-			when COUNT	=>
-				w_RECV <= '1';
-				w_CNT_RESET <= '0';
-				w_S2P_RESET <= '0';
-				w_ND <= '0';
-			when ACQUIRE =>
-				w_RECV <= '1';
-				w_CNT_RESET <= '1';
-				w_S2P_RESET <= '0';
-				w_ND <= '1';
-			when IDLE_COUNT =>
-				w_RECV <= '1';
-				w_CNT_RESET <= '0';
-				w_S2P_RESET <= '0';
-				w_ND <= '0';
-			when CHECK_END =>
-				w_RECV <= '1';
-				w_CNT_RESET <= '1';
-				w_S2P_RESET <= '0';
-				w_ND <= '0';
-		end case;
+		if(i_RST = '1') then
+			r_DATA <= (OTHERS => '1');
+		elsif(falling_edge(i_CLK) and w_DATA(0) = '0') then
+			r_DATA <= w_DATA(frame_size downto 1);
+		end if;
 	end process;
-	
+
 	-- Transição de Estados
 	UART_MACH : process(i_CLK, i_RX, i_RST, t_STATE, w_RX_DOWN)
 	begin
@@ -196,14 +171,14 @@ begin
 		end if;
 	end process UART_MACH;
 
-	
-	process(i_CLK, i_RST, w_DATA, t_STATE)
-	begin
-		if(i_RST = '1') then
-			r_DATA <= (OTHERS => '1');
-		elsif(falling_edge(i_CLK) and w_DATA(0) = '0') then
-			r_DATA <= w_DATA(frame_size downto 1);
-		end if;
-	end process;
+	-- Atribuições de saída
+	o_DATA <= r_DATA;
+	o_RECV <= w_RECV;
+
+	-- Fios Dependentes dos Estados
+	w_CNT_RESET <= '0' when t_STATE = COUNT or t_STATE = IDLE_COUNT else '1';
+	w_ND <= '1' when t_STATE = ACQUIRE else '0';
+	w_RECV <= '0' when t_STATE = IDLE else '1';
+	w_S2P_RESET <= '1' when t_STATE = IDLE else '0';
 
 end behavioral;

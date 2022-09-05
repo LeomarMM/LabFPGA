@@ -31,10 +31,10 @@ entity UART_TX is
 
 	generic
 	(
-		baud			:	integer	:= 9600;			--	Baud padrão
-		clock			:	integer	:= 50000000;	--	50MHz de clock interno padrao
-		frame_size	:	integer	:=	8;				--	Quantidade de bits no enquadramento de dados
-		stop_bits	:	integer	:= 1				--	Bits de parada
+		baud			:	integer	:= 9600;
+		clock			:	integer	:= 50000000;
+		frame_size	:	integer	:=	8;
+		stop_bits	:	integer	:= 1
 	);
 	port
 	(
@@ -159,6 +159,7 @@ begin
 		o_EDGE_DOWN 	=> w_LS_DOWN
 	);
 
+	-- Transição de Estados
 	process(i_RST, i_CLK)
 	begin
 		if(i_RST = '1') then
@@ -191,8 +192,11 @@ begin
 		end if;
 	end process;
 
+	-- Atribuições de saída
 	o_RTS <= w_LOAD;
 	o_TX <= w_TX;
+
+	-- Fios Dependentes dos Estados
 	w_CC1_RST <= '0' when t_STATE = CLOCK_COUNT else '1';
 	w_CC2_ENA <= '1' when t_STATE = DATA_COUNT else '0';
 	w_CC2_RST <= '1' when t_STATE = IDLE else '0';

@@ -118,13 +118,6 @@ architecture behavioral of MONITOR_RX is
 
 begin
 
-	o_BYTES <= r_OUTPUT;
-	w_BUF_CRC <= r_BUFFER(buffer_size-1 downto 8) & x"00";
-	w_CRC_DATA <= w_BUF_CRC(w_CNT_VAL);
-
-	w_DATA_TX <= ACK when r_EQ = '1' else NAK;
-	w_CNT_ENA <= '1' when t_STATE = CRC_COUNT else '0';
-
 	CC1	:	COUNTER
 	port map
 	(
@@ -166,7 +159,7 @@ begin
 		o_RTS		=>	w_RTS
 	);
 
-	-- Registrador de bufferização
+	-- Registradores de bufferização
 	process(i_CLK, w_BUF_RST)
 	begin
 		if(w_BUF_RST = '1') then
@@ -179,7 +172,7 @@ begin
 	end process;
 	
 	
-	-- Registrador de saída
+	-- Registradores de saída
 	process(i_CLK, i_RST)
 	begin
 		if(i_RST = '1') then
@@ -191,7 +184,7 @@ begin
 		end if;
 	end process;
 	
-	-- Registrador CRC
+	-- Registrador de igualdade de CRC
 	process(i_CLK, i_RST)
 	begin
 		if(i_RST = '1') then
@@ -207,7 +200,7 @@ begin
 		end if;
 	end process;
 	
-	-- Lógica de transição de estados
+	-- Transição de estados
 	process(i_CLK, i_RST)
 	begin
 		if(i_RST = '1') then
@@ -262,71 +255,24 @@ begin
 		end if;
 	end process;
 	
-	-- Barramentos dependentes de estados
-	process(t_STATE)
-	begin
-		case t_STATE is
-			when IDLE =>
-				w_BUF_RST <= '0';
-				w_CNT_RST <= '1';
-				w_CRC_ENA <= '0';
-				w_CRC_RST <= '1';
-				w_LS		 <= '1';
-			when RECV =>
-				w_BUF_RST <= '0';
-				w_CNT_RST <= '1';
-				w_CRC_ENA <= '0';
-				w_CRC_RST <= '0';
-				w_LS		 <= '1';
-			when FILL_BUFFER =>
-				w_BUF_RST <= '0';
-				w_CNT_RST <= '1';
-				w_CRC_ENA <= '0';
-				w_CRC_RST <= '0';
-				w_LS		 <= '1';
-			when CRC_FEED =>
-				w_BUF_RST <= '0';
-				w_CNT_RST <= '0';
-				w_CRC_ENA <= '1';
-				w_CRC_RST <= '0';
-				w_LS		 <= '1';
-			when CRC_COUNT =>
-				w_BUF_RST <= '0';
-				w_CNT_RST <= '0';
-				w_CRC_ENA <= '0';
-				w_CRC_RST <= '0';
-				w_LS		 <= '1';
-			when CRC_CHECK =>
-				w_BUF_RST <= '0';
-				w_CNT_RST <= '0';
-				w_CRC_ENA <= '0';
-				w_CRC_RST <= '0';
-				w_LS		 <= '1';
-			when FILL_OUTPUT =>
-				w_BUF_RST <= '0';
-				w_CNT_RST <= '1';
-				w_CRC_ENA <= '0';
-				w_CRC_RST <= '0';
-				w_LS		 <= '1';
-			when START_RESPONSE =>
-				w_BUF_RST <= '0';
-				w_CNT_RST <= '1';
-				w_CRC_ENA <= '0';
-				w_CRC_RST <= '0';
-				w_LS		 <= '0';
-			when SEND_RESPONSE =>
-				w_BUF_RST <= '0';
-				w_CNT_RST <= '1';
-				w_CRC_ENA <= '0';
-				w_CRC_RST <= '0';
-				w_LS		 <= '1';
-			when RESET_BUFFER =>
-				w_BUF_RST <= '1';
-				w_CNT_RST <= '1';
-				w_CRC_ENA <= '0';
-				w_CRC_RST <= '0';
-				w_LS		 <= '1';
-		end case;
-	end process;
+	-- Atribuições de saída
+	o_BYTES <= r_OUTPUT;
+	
+	-- Fios Independentes de Estados
+	w_BUF_CRC <= r_BUFFER(buffer_size-1 downto 8) & x"00";
+	w_CRC_DATA <= w_BUF_CRC(w_CNT_VAL);
+	w_DATA_TX <= ACK when r_EQ = '1' else NAK;
+
+	-- Fios Dependentes de Estados
+	w_BUF_RST <= '1' when t_STATE = RESET_BUFFER else '0';
+	w_CRC_ENA <= '1' when t_STATE = CRC_FEED else '0';
+	w_CRC_RST <= '1' when t_STATE = IDLE else '0';
+	w_CNT_ENA <= '1' when t_STATE = CRC_COUNT else '0';
+	w_CNT_RST <= '0' when 
+					 t_STATE = CRC_FEED or 
+					 t_STATE = CRC_COUNT or
+					 t_STATE = CRC_CHECK
+					 else '1';
+	w_LS	<= '0' when t_STATE = START_RESPONSE else '1';
 
 end behavioral;
