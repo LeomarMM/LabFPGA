@@ -9,10 +9,12 @@
 --
 -- Entradas:
 --					i_CLK			--> Sinal de clock para o contador.
---					i_RST			--> Sinal de reset do componente.
+--					i_RST			--> Sinal de reset do contador.
+--					i_ENA			--> Sinal de enable do contador.
 --
 -- Saídas:
---					o_CLK			--> Sinal de clock de saída baseada no estouro da contagem.
+--					o_COUNT		--> Valor do contador interno do componente.
+--					o_EQ			--> Indicador de fim da contagem.
 --
 --*************************************************************************************
 

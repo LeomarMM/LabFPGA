@@ -6,7 +6,7 @@ generic
 (
 	baud				:	integer := 9600;
 	clock				:	integer := 100000000;
-	input_bytes		:	integer := 11
+	bytes				:	integer := 11
 );
 port
 (
@@ -15,7 +15,7 @@ port
 	i_RST		:	in std_logic;
 	o_TX		:	out std_logic;
 	o_RST		:	out std_logic;
-	o_BYTES	:	out std_logic_vector(8 downto 0)
+	o_PINS	:	out std_logic_vector(8 downto 0)
 );
 end TOP_MONITOR;
 
@@ -36,7 +36,7 @@ architecture rtl of TOP_MONITOR is
 	(
 		baud				:	integer := baud;
 		clock				:	integer := clock;
-		input_bytes		:	integer := input_bytes
+		bytes				:	integer := bytes
 	);
 	port
 	(
@@ -44,14 +44,14 @@ architecture rtl of TOP_MONITOR is
 		i_CLK		:	in std_logic;
 		i_RST		:	in std_logic;
 		o_TX		:	out std_logic;
-		o_BYTES	:	out std_logic_vector(8*input_bytes-1 downto 0)
+		o_PINS	:	out std_logic_vector(8*bytes-1 downto 0)
 	);
 	end component;
 
 	signal w_CLK		: std_logic;
 	signal w_LOCKED	: std_logic;
 	signal w_RST		: std_logic;
-	signal w_BYTES		: std_logic_vector(8*input_bytes-1 downto 0);
+	signal w_BYTES		: std_logic_vector(8*bytes-1 downto 0);
 
 begin
 	
@@ -71,10 +71,10 @@ begin
 		i_CLK		=> w_CLK,
 		i_RST		=> w_RST,
 		o_TX		=>	o_TX,
-		o_BYTES	=> w_BYTES
+		o_PINS	=> w_BYTES
 	);
 
-	o_BYTES <= w_BYTES(8 downto 0);
+	o_PINS <= w_BYTES(8 downto 0);
 	o_RST	<=	w_LOCKED;
 	w_RST <= not w_LOCKED;
 

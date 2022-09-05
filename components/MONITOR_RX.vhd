@@ -1,12 +1,26 @@
+--*************************************************************************************
+--
+--	Módulo		:	MONITOR
+-- Descrição	:	Componente de atuação e leitura sobre os pinos do FPGA
+--	Entradas:
+--					i_RX				--> Sinal de recepção da UART.
+--					i_CLK				--> Clock global.
+--					i_RST				--> Reset assíncrono.
+--	Saídas:
+--					o_TX				--> Sinal de transmissão da UART.
+--					o_PINS			--> Sinal de saída para os pinos à serem controlados.
+--
+--*************************************************************************************
+
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 entity MONITOR_RX is
 generic
 (
-	baud				:	integer;
-	clock				:	integer;
-	input_bytes		:	integer
+	baud		:	integer;
+	clock		:	integer;
+	bytes		:	integer
 );
 port
 (
@@ -14,7 +28,7 @@ port
 	i_CLK		:	in std_logic;
 	i_RST		:	in std_logic;
 	o_TX		:	out std_logic;
-	o_BYTES	:	out std_logic_vector(8*input_bytes-1 downto 0)
+	o_PINS	:	out std_logic_vector(8*bytes-1 downto 0)
 );
 end MONITOR_RX;
 
@@ -27,8 +41,8 @@ architecture behavioral of MONITOR_RX is
 	attribute syn_encoding : string;
 	attribute syn_encoding of top_state :  type is "safe";
 	
-	constant buffer_size : integer := 8*(input_bytes+1);
-	constant output_size : integer := 8*input_bytes;
+	constant buffer_size : integer := 8*(bytes+1);
+	constant output_size : integer := 8*bytes;
 
 	component COUNTER
 	generic
@@ -256,7 +270,7 @@ begin
 	end process;
 	
 	-- Atribuições de saída
-	o_BYTES <= r_OUTPUT;
+	o_PINS <= r_OUTPUT;
 	
 	-- Fios Independentes de Estados
 	w_BUF_CRC <= r_BUFFER(buffer_size-1 downto 8) & x"00";
@@ -266,13 +280,9 @@ begin
 	-- Fios Dependentes de Estados
 	w_BUF_RST <= '1' when t_STATE = RESET_BUFFER else '0';
 	w_CRC_ENA <= '1' when t_STATE = CRC_FEED else '0';
-	w_CRC_RST <= '1' when t_STATE = IDLE else '0';
+	w_CRC_RST <= '1' when t_STATE = RESET_BUFFER else '0';
 	w_CNT_ENA <= '1' when t_STATE = CRC_COUNT else '0';
-	w_CNT_RST <= '0' when 
-					 t_STATE = CRC_FEED or 
-					 t_STATE = CRC_COUNT or
-					 t_STATE = CRC_CHECK
-					 else '1';
+	w_CNT_RST <= '1' when t_STATE = RESET_BUFFER else '0';
 	w_LS	<= '0' when t_STATE = START_RESPONSE else '1';
 
 end behavioral;

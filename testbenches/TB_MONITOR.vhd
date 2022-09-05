@@ -6,8 +6,7 @@ entity TB_MONITOR is
 generic
 (
 	baud				:	integer := 9600;
-	input_bytes		:	integer := 2;
-	output_bytes	:	integer := 3
+	bytes				:	integer := 2
 );
 end TB_MONITOR;
 
@@ -19,21 +18,21 @@ architecture testbench of TB_MONITOR is
 	(
 		baud				:	integer := baud;
 		clock				:	integer := 50000000;
-		input_bytes		:	integer := input_bytes
+		bytes		:	integer := bytes
 	);
 	port
 	(
 		i_RX		:	in std_logic;
 		i_CLK		:	in std_logic;
 		i_RST		:	in std_logic;
-		o_BYTES	:	out std_logic_vector(8*input_bytes-1 downto 0)
+		o_PINS	:	out std_logic_vector(8*bytes-1 downto 0)
 	);
 	end component;
 
 	signal w_RX		:	std_logic;
 	signal w_CLK	:	std_logic;
 	signal w_RST	:	std_logic;
-	signal w_BYTES	:	std_logic_vector(8*input_bytes-1 downto 0);
+	signal w_PINS	:	std_logic_vector(8*bytes-1 downto 0);
 	
 begin
 
@@ -43,7 +42,7 @@ begin
 		i_RX	=> w_RX,
 		i_CLK	=> w_CLK,
 		i_RST	=> w_RST,
-		o_BYTES => w_BYTES
+		o_PINS => w_PINS
 	);
 
 	-- Clock
