@@ -13,7 +13,7 @@ end TB_MONITOR;
 architecture testbench of TB_MONITOR is
 
 	constant delay	:	time	:= 1 sec*(1.0/real(baud));
-	component MONITOR_RX
+	component MONITOR
 	generic
 	(
 		baud				:	integer := baud;
@@ -25,6 +25,7 @@ architecture testbench of TB_MONITOR is
 		i_RX		:	in std_logic;
 		i_CLK		:	in std_logic;
 		i_RST		:	in std_logic;
+		i_PINS	:	in std_logic_vector(8*bytes-1 downto 0) := (OTHERS => '1');
 		o_PINS	:	out std_logic_vector(8*bytes-1 downto 0)
 	);
 	end component;
@@ -36,7 +37,7 @@ architecture testbench of TB_MONITOR is
 	
 begin
 
-	U1 : MONITOR_RX
+	U1 : MONITOR
 	port map
 	(
 		i_RX	=> w_RX,

@@ -15,7 +15,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
-entity MONITOR_RX is
+entity MONITOR is
 generic
 (
 	baud		:	integer;
@@ -27,17 +27,19 @@ port
 	i_RX		:	in std_logic;
 	i_CLK		:	in std_logic;
 	i_RST		:	in std_logic;
+	i_PINS	:	in std_logic_vector(8*bytes-1 downto 0);
 	o_TX		:	out std_logic;
 	o_PINS	:	out std_logic_vector(8*bytes-1 downto 0)
 );
-end MONITOR_RX;
+end MONITOR;
 
-architecture behavioral of MONITOR_RX is
+architecture behavioral of MONITOR is
 
 	type top_state is (IDLE, RECV, FILL_BUFFER, 
-	CRC_FEED, CRC_CHECK, CRC_COUNT,
-	START_RESPONSE, SEND_RESPONSE,
-	FILL_OUTPUT, RESET_BUFFER);
+	CRC_RESET, CRC_FEED, CRC_COUNT, LOAD_ACK, 
+	START_RESPONSE, SEND_RESPONSE, CHANGE_MODE,
+	FILL_OUTPUT, LOAD_PINS, LOAD_CRC, COUNT_RST, 
+	COUNT_SENT,	RESET_BUFFER);
 	attribute syn_encoding : string;
 	attribute syn_encoding of top_state :  type is "safe";
 	
@@ -47,8 +49,8 @@ architecture behavioral of MONITOR_RX is
 	component COUNTER
 	generic
 	(
-		max_count	:	integer := buffer_size-1;
-		reverse		:	std_logic := '1'
+		max_count	:	integer;
+		reverse		:	std_logic
 	);
 	port
 	(
@@ -112,34 +114,56 @@ architecture behavioral of MONITOR_RX is
 	constant NAK		:	std_logic_vector(7 downto 0) := x"15";
 	signal w_BUF_RST	:	std_logic;
 	signal w_BUF_CRC	:	std_logic_vector(buffer_size-1 downto 0);
-	signal w_CNT_ENA	:	std_logic;
-	signal w_CNT_EQ	:	std_logic;
-	signal w_CNT_RST	:	std_logic;
-	signal w_CNT_VAL	:	integer range 0 to buffer_size - 1;
+	signal w_CNT1_ENA	:	std_logic;
+	signal w_CNT1_EQ	:	std_logic;
+	signal w_CNT1_RST	:	std_logic;
+	signal w_CNT1_VAL	:	integer range 0 to buffer_size - 1;
+	signal w_CNT2_ENA	:	std_logic;
+	signal w_CNT2_EQ	:	std_logic;
+	signal w_CNT2_RST	:	std_logic;
 	signal w_CRC_DATA	:	std_logic;
 	signal w_CRC_ENA	:	std_logic;
 	signal w_CRC_OUT	:	std_logic_vector(7 downto 0);
 	signal w_CRC_RST	:	std_logic;
 	signal w_DATA_RX 	:	std_logic_vector(7 downto 0);
-	signal w_DATA_TX	:	std_logic_vector(7 downto 0);
+	signal w_EQ			:	std_logic;
 	signal w_LS			:	std_logic;
 	signal w_RECV		:	std_logic;
 	signal w_RTS		:	std_logic;
 	signal r_BUFFER	:	std_logic_vector(buffer_size downto 0) := (0 => '1', OTHERS => '0');
+	signal r_MODE		:	std_logic := '0';
 	signal r_OUTPUT	:	std_logic_vector(output_size-1 downto 0) := (OTHERS => '0');
-	signal r_EQ			:	std_logic := '0';
-	signal t_STATE		:	top_state;
+	signal t_STATE		:	top_state := RESET_BUFFER;
 
 begin
 
 	CC1	:	COUNTER
+	generic map
+	(
+		max_count	=> buffer_size-1,
+		reverse		=> '1'
+	)
 	port map
 	(
 		i_CLK	=>	"not"(i_CLK),
-		i_RST	=>	w_CNT_RST,
-		i_ENA => w_CNT_ENA,
-		o_EQ	=> w_CNT_EQ,
-		o_COUNT => w_CNT_VAL
+		i_RST	=>	w_CNT1_RST,
+		i_ENA => w_CNT1_ENA,
+		o_EQ	=> w_CNT1_EQ,
+		o_COUNT => w_CNT1_VAL
+	);
+
+	CC2	:	COUNTER
+	generic map
+	(
+		max_count	=> bytes+1,
+		reverse		=> '0'
+	)
+	port map
+	(
+		i_CLK	=>	"not"(i_CLK),
+		i_RST	=>	w_CNT2_RST,
+		i_ENA => w_CNT2_ENA,
+		o_EQ	=> w_CNT2_EQ
 	);
 
 	U1	: CRC8
@@ -165,7 +189,7 @@ begin
 	U3 : UART_TX
 	port map
 	(
-		i_DATA	=> w_DATA_TX,
+		i_DATA	=> r_BUFFER(buffer_size-1 downto output_size),
 		i_CLK		=> i_CLK,
 		i_RST		=> i_RST,
 		i_LS		=> w_LS,
@@ -181,6 +205,16 @@ begin
 		elsif(falling_edge(i_CLK)) then
 			if(t_STATE = FILL_BUFFER) then
 				r_BUFFER <= r_BUFFER(output_size downto 0) & w_DATA_RX;
+			elsif(t_STATE = LOAD_ACK) then
+				if(w_EQ = '1') then
+					r_BUFFER(buffer_size-1 downto output_size) <= ACK;
+				else
+					r_BUFFER(buffer_size-1 downto output_size) <= NAK;
+				end if;
+			elsif(t_STATE = LOAD_PINS) then
+				r_BUFFER <= '1' & i_PINS & x"00";
+			elsif(t_STATE = LOAD_CRC) then
+				r_BUFFER(7 downto 0) <= w_CRC_OUT;
 			end if;
 		end if;
 	end process;
@@ -192,28 +226,24 @@ begin
 		if(i_RST = '1') then
 			r_OUTPUT <= (OTHERS => '0');
 		elsif(falling_edge(i_CLK)) then
-			if(t_STATE = FILL_OUTPUT and r_EQ = '1') then
+			if(t_STATE = FILL_OUTPUT and w_EQ = '1') then
 				r_OUTPUT <= r_BUFFER(buffer_size-1 downto 8);
 			end if;
 		end if;
 	end process;
-	
-	-- Registrador de igualdade de CRC
-	process(i_CLK, i_RST)
+
+	-- Registradores de modo
+	process(i_CLK, t_STATE)
 	begin
-		if(i_RST = '1') then
-			r_EQ <= '0';
+		if(t_STATE = RESET_BUFFER) then
+			r_MODE <= '0';
 		elsif(falling_edge(i_CLK)) then
-			if(t_STATE = CRC_CHECK) then
-				if(r_BUFFER(7 downto 0) = w_CRC_OUT) then
-					r_EQ <= '1';
-				else 
-					r_EQ <= '0';
-				end if;
+			if(t_STATE = CHANGE_MODE) then
+				r_MODE <= '1';
 			end if;
 		end if;
 	end process;
-	
+
 	-- Transição de estados
 	process(i_CLK, i_RST)
 	begin
@@ -234,22 +264,36 @@ begin
 						t_STATE <= RECV;
 					end if;
 				when FILL_BUFFER =>
-					if(r_BUFFER(r_BUFFER'high) = '1') then
-						t_STATE <= CRC_FEED;
+					if(r_MODE = '0') then
+						if(r_BUFFER(r_BUFFER'high) = '1') then
+							t_STATE <= CRC_RESET;
+						else
+							t_STATE <= IDLE;
+						end if;
 					else
-						t_STATE <= IDLE;
+						if(w_CNT2_EQ = '1') then
+							t_STATE <= RESET_BUFFER;
+						else
+							t_STATE <= START_RESPONSE;
+						end if;
 					end if;
+				when CRC_RESET =>
+					t_STATE <= CRC_FEED;
 				when CRC_FEED =>
-					if(w_CNT_EQ = '1') then
-						t_STATE <= CRC_CHECK;
+					if(w_CNT1_EQ = '1') then
+						if(r_MODE = '0') then
+							t_STATE <= FILL_OUTPUT;
+						else 
+							t_STATE <= LOAD_CRC;
+						end if;
 					else
 						t_STATE <= CRC_COUNT;
 					end if;
 				when CRC_COUNT =>
 						t_STATE <= CRC_FEED;
-				when CRC_CHECK =>
-					t_STATE <= FILL_OUTPUT;
 				when FILL_OUTPUT =>
+					t_STATE <= LOAD_ACK;
+				when LOAD_ACK =>
 					t_STATE <= START_RESPONSE;
 				when START_RESPONSE =>
 					if(w_RTS = '0') then
@@ -259,10 +303,24 @@ begin
 					end if;
 				when SEND_RESPONSE =>
 					if(w_RTS = '1') then
-						t_STATE <= RESET_BUFFER;
+						if(r_MODE = '0') then
+							t_STATE <= CHANGE_MODE;
+						else
+							t_STATE <= COUNT_SENT;
+						end if;
 					else
 						t_STATE <= SEND_RESPONSE;
 					end if;
+				when CHANGE_MODE =>
+					t_STATE <= LOAD_PINS;
+				when LOAD_PINS	=>
+					t_STATE <= CRC_RESET;
+				when LOAD_CRC =>
+					t_STATE <= COUNT_RST;
+				when COUNT_RST =>
+					t_STATE <= START_RESPONSE;
+				when COUNT_SENT =>
+					t_STATE <= FILL_BUFFER;
 				when RESET_BUFFER =>
 					t_STATE <= IDLE;
 			end case;
@@ -274,15 +332,17 @@ begin
 	
 	-- Fios Independentes de Estados
 	w_BUF_CRC <= r_BUFFER(buffer_size-1 downto 8) & x"00";
-	w_CRC_DATA <= w_BUF_CRC(w_CNT_VAL);
-	w_DATA_TX <= ACK when r_EQ = '1' else NAK;
+	w_CRC_DATA <= w_BUF_CRC(w_CNT1_VAL);
+	w_EQ <= '1' when r_BUFFER(7 downto 0) = w_CRC_OUT else '0';
 
 	-- Fios Dependentes de Estados
 	w_BUF_RST <= '1' when t_STATE = RESET_BUFFER else '0';
 	w_CRC_ENA <= '1' when t_STATE = CRC_FEED else '0';
-	w_CRC_RST <= '1' when t_STATE = RESET_BUFFER else '0';
-	w_CNT_ENA <= '1' when t_STATE = CRC_COUNT else '0';
-	w_CNT_RST <= '1' when t_STATE = RESET_BUFFER else '0';
+	w_CRC_RST <= '1' when t_STATE = CRC_RESET else '0';
+	w_CNT1_ENA <= '1' when t_STATE = CRC_COUNT else '0';
+	w_CNT1_RST <= '1' when t_STATE = CRC_RESET else '0';
+	w_CNT2_ENA <= '1' when t_STATE = COUNT_SENT else '0';
+	w_CNT2_RST <= '1' when t_STATE = COUNT_RST else '0';
 	w_LS	<= '0' when t_STATE = START_RESPONSE else '1';
 
 end behavioral;

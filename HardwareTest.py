@@ -32,7 +32,7 @@ def send_fpga(ser, crc, data):
     
     checksum = bytes([crc.calculate_checksum(data)])
     print("\n\n====================================================")
-    print("Data: 0x" + data.hex().upper() + " - Checksum: 0x" + checksum.hex().upper())
+    print("Sent Data: 0x" + data.hex().upper() + " - Checksum: 0x" + checksum.hex().upper())
     ser.write(data)
     ser.write(checksum)
     ##response = b'\x06'
@@ -43,6 +43,11 @@ def send_fpga(ser, crc, data):
         print("Response: NAK")
     else:
         print("Unknown Response: "+response.hex().upper())
+    print("FPGA Data: 0x", end='')
+    for i in range(input_bytes):
+        ret = ser.read()
+        print(ret.hex().upper(), end='')
+    print(" - Checksum: 0x" + ser.read().hex().upper())
     print("====================================================\n\n")
 
 crc_obj = CrcCalculator(fpga_poly)
