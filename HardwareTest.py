@@ -1,8 +1,6 @@
 import serial
 from crc import CrcCalculator, Crc8, Configuration
 
-input_bytes=11
-
 fpga_poly = Configuration(
     width=8,
     polynomial=0x2F,
@@ -11,6 +9,24 @@ fpga_poly = Configuration(
     reverse_input=False,
     reverse_output=False,
 )
+
+def int_input(str):
+    while True:
+        try:
+            print(str, end='')
+            a = int(input())
+            return a
+        except Exception:
+            print("Error reading input.")
+
+def port_input(str):
+    while True:
+        try:
+            print(str, end='')
+            a = serial.Serial(input(), baud)
+            return a
+        except Exception:
+            print("Error acquiring port.")
 
 def send_fpga(ser, crc, data):
     
@@ -29,14 +45,10 @@ def send_fpga(ser, crc, data):
         print("Unknown Response: "+response.hex().upper())
     print("====================================================\n\n")
 
-
 crc_obj = CrcCalculator(fpga_poly)
-print('Baud Rate: ', end='')
-baud = int(input())
-print('Port: ', end='')
-ser = serial.Serial(input(), baud)
-
+baud = int_input('Baud Rate: ')
+ser = port_input('Port: ')
+input_bytes = int_input('Packet payload in bytes: ')
 while(1):
-    print('Value to send: ', end='')
-    b = int(input()).to_bytes(input_bytes, byteorder='big')
+    b = int_input('Value to send: ').to_bytes(input_bytes, byteorder='big')
     send_fpga(ser, crc_obj, b)
