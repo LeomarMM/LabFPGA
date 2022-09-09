@@ -36,7 +36,7 @@ architecture Behavioral of SER2PAR is
 ----------------------------------------------------------------------------------------------
 -- Sinais internos.
 ----------------------------------------------------------------------------------------------
-	signal w_DATA	: std_logic_vector (o_DATA'range);
+	signal r_DATA	: std_logic_vector (o_DATA'range);
 ----------------------------------------------------------------------------------------------
 begin
 ----------------------------------------------------------------------------------------------
@@ -45,16 +45,16 @@ begin
 	begin
 		
 		if (i_RST = '1') then
-			w_DATA <= (others => '1');
+			r_DATA <= (others => '1');
 			
 		elsif(rising_edge(i_CLK) and i_ND = '1') then
-			w_DATA <= i_RX & w_DATA(word_size-1 downto 1);
+			r_DATA <= i_RX & r_DATA(word_size-1 downto 1);
 			
 		end if;
 
 	end process U1;
 
-	o_DATA <= w_DATA;
+	o_DATA <= r_DATA;
 
 ----------------------------------------------------------------------------------------------
 end Behavioral;

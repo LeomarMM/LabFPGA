@@ -39,8 +39,8 @@ architecture Behavioral of PAR2SER is
 ----------------------------------------------------------------------------------------------
 -- Sinais internos.
 ----------------------------------------------------------------------------------------------
-	signal w_DATA	: std_logic_vector (i_DATA'range);
-	signal w_ND		: std_logic;
+	signal r_DATA	: std_logic_vector (i_DATA'range);
+	signal r_ND		: std_logic;
 ----------------------------------------------------------------------------------------------
 begin
 ----------------------------------------------------------------------------------------------
@@ -50,14 +50,14 @@ begin
 	begin
 
 		if(i_RST = '1') then
-			w_ND <= '0';
+			r_ND <= '0';
 			o_TX <= rst_val;
 		elsif falling_edge(i_CLK) then
 			if(i_ND = '1') then
-				o_TX <= w_DATA(0);
-				w_ND <= '1';
+				o_TX <= r_DATA(0);
+				r_ND <= '1';
 			else
-				w_ND <= '0';
+				r_ND <= '0';
 			end if;
 		end if;
 
@@ -68,13 +68,13 @@ begin
 	U2 : process (i_RST, i_CLK)
 	begin
 		if(i_RST = '1') then
-			w_DATA <= (OTHERS => rst_val);
+			r_DATA <= (OTHERS => rst_val);
 		elsif rising_edge(i_CLK) then
 			if(i_LOAD = '1') then
-				w_DATA <= i_DATA;
+				r_DATA <= i_DATA;
 
-			elsif(w_ND = '1') then
-				w_DATA <= rst_val & w_DATA(word_size-1 downto 1);
+			elsif(r_ND = '1') then
+				r_DATA <= rst_val & r_DATA(word_size-1 downto 1);
 			end if;
 		end if;
 
