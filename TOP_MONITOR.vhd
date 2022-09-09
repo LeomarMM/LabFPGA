@@ -13,7 +13,6 @@ port
 	i_RX		:	in std_logic;
 	i_CLK		:	in std_logic;
 	i_RST		:	in std_logic;
-	i_PINS	:	in std_logic_vector(8 downto 0);
 	o_TX		:	out std_logic;
 	o_RST		:	out std_logic;
 	o_PINS	:	out std_logic_vector(8 downto 0)
@@ -53,8 +52,7 @@ architecture rtl of TOP_MONITOR is
 	signal w_CLK		: std_logic;
 	signal w_LOCKED	: std_logic;
 	signal w_RST		: std_logic;
-	signal w_BYTES		: std_logic_vector(8*bytes-1 downto 0);
-	signal w_PINS		: std_logic_vector(8*bytes-1 downto 0) := (OTHERS => '0');
+	signal w_PINS		: std_logic_vector(8*bytes-1 downto 0);
 
 begin
 	
@@ -75,12 +73,11 @@ begin
 		i_RST		=> w_RST,
 		i_PINS	=> w_PINS,
 		o_TX		=>	o_TX,
-		o_PINS	=> w_BYTES
+		o_PINS	=> w_PINS
 	);
 
-	o_PINS <= w_BYTES(8 downto 0);
+	o_PINS <= w_PINS(8 downto 0);
 	o_RST	<=	w_LOCKED;
 	w_RST <= not w_LOCKED;
-	w_PINS(8 downto 0) <= i_PINS;
 
 end rtl;
