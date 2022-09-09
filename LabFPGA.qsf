@@ -38,7 +38,7 @@
 
 set_global_assignment -name FAMILY "Cyclone V"
 set_global_assignment -name DEVICE 5CSEMA5F31C6
-set_global_assignment -name TOP_LEVEL_ENTITY TOP_MONITOR
+set_global_assignment -name TOP_LEVEL_ENTITY TOP_DE1SoC
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION "13.0 SP1"
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "01:35:30  JUNE 20, 2022"
 set_global_assignment -name LAST_QUARTUS_VERSION "21.1.1 Lite Edition"
@@ -60,27 +60,24 @@ set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED WITH WE
 set_global_assignment -name BOARD "DE1-SoC Board"
 set_location_assignment PIN_AE12 -to i_RST
 set_location_assignment PIN_AF14 -to i_CLK
-set_location_assignment PIN_W20 -to o_PINS[7]
-set_location_assignment PIN_Y19 -to o_PINS[6]
-set_location_assignment PIN_W19 -to o_PINS[5]
-set_location_assignment PIN_W17 -to o_PINS[4]
-set_location_assignment PIN_V18 -to o_PINS[3]
-set_location_assignment PIN_V17 -to o_PINS[2]
-set_location_assignment PIN_W16 -to o_PINS[1]
-set_location_assignment PIN_V16 -to o_PINS[0]
-set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to i_RX
 set_location_assignment PIN_Y17 -to i_RX
 set_global_assignment -name OPTIMIZATION_MODE BALANCED
-set_location_assignment PIN_W21 -to o_PINS[8]
 set_location_assignment PIN_Y18 -to o_TX
-set_location_assignment PIN_Y21 -to o_RST
-set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
-set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
-set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to i_RX
+set_location_assignment PIN_Y21 -to o_LEDR[9]
+set_location_assignment PIN_W21 -to o_LEDR[8]
+set_location_assignment PIN_W20 -to o_LEDR[7]
+set_location_assignment PIN_Y19 -to o_LEDR[6]
+set_location_assignment PIN_W19 -to o_LEDR[5]
+set_location_assignment PIN_W17 -to o_LEDR[4]
+set_location_assignment PIN_V18 -to o_LEDR[3]
+set_location_assignment PIN_V17 -to o_LEDR[2]
+set_location_assignment PIN_W16 -to o_LEDR[1]
+set_location_assignment PIN_V16 -to o_LEDR[0]
 set_global_assignment -name SDC_FILE LabFPGA.sdc
-set_global_assignment -name VHDL_FILE TOP_MONITOR.vhd
 set_global_assignment -name VHDL_FILE components/COUNTER.vhd
 set_global_assignment -name VHDL_FILE components/CRC8.vhd
+set_global_assignment -name VHDL_FILE components/DE1SoC.vhd
 set_global_assignment -name VHDL_FILE components/EDGE_DETECTOR.vhd
 set_global_assignment -name VHDL_FILE components/MONITOR.vhd
 set_global_assignment -name VHDL_FILE components/PAR2SER.vhd
@@ -98,13 +95,9 @@ set_global_assignment -name VHDL_FILE testbenches/TB_PAR2SER.vhd
 set_global_assignment -name VHDL_FILE testbenches/TB_SER2PAR.vhd
 set_global_assignment -name VHDL_FILE testbenches/TB_UART_RX.vhd
 set_global_assignment -name VHDL_FILE testbenches/TB_UART_TX.vhd
-set_location_assignment PIN_AB12 -to i_PINS[0]
-set_location_assignment PIN_AC12 -to i_PINS[1]
-set_location_assignment PIN_AF9 -to i_PINS[2]
-set_location_assignment PIN_AF10 -to i_PINS[3]
-set_location_assignment PIN_AD11 -to i_PINS[4]
-set_location_assignment PIN_AD12 -to i_PINS[5]
-set_location_assignment PIN_AE11 -to i_PINS[6]
-set_location_assignment PIN_AC9 -to i_PINS[7]
-set_location_assignment PIN_AD10 -to i_PINS[8]
+set_global_assignment -name VHDL_FILE toplevel/TOP_DE1SoC.vhd
+set_global_assignment -name VHDL_FILE toplevel/TOP_MONITOR.vhd
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

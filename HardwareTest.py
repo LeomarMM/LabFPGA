@@ -1,4 +1,4 @@
-import serial
+import serial #pyserial
 from crc import CrcCalculator, Crc8, Configuration
 
 fpga_poly = Configuration(
