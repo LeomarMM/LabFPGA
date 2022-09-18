@@ -14,14 +14,20 @@ port
 	i_CLK		:	in std_logic;
 	i_RST		:	in std_logic;
 	o_TX		:	out std_logic;
-	o_LEDR	:	out std_logic_vector(9 downto 0)
+	o_LEDR	:	out std_logic_vector(9 downto 0);
+	o_HEX5	:	out std_logic_vector(6 downto 0);
+	o_HEX4	:	out std_logic_vector(6 downto 0);
+	o_HEX3	:	out std_logic_vector(6 downto 0);
+	o_HEX2	:	out std_logic_vector(6 downto 0);
+	o_HEX1	:	out std_logic_vector(6 downto 0);
+	o_HEX0	:	out std_logic_vector(6 downto 0)
 );
 end TOP_DE1SoC;
 
 architecture rtl of TOP_DE1SoC is
 
 	component PLL
-	port 
+	port
 	(
 		refclk   : in  std_logic := '0';
 		rst      : in  std_logic := '0';
@@ -29,7 +35,7 @@ architecture rtl of TOP_DE1SoC is
 		locked   : out std_logic
 	);
 	end component;
-	
+
 	component DE1SoC is
 	generic
 	(
@@ -69,6 +75,15 @@ architecture rtl of TOP_DE1SoC is
 
 begin
 	
+	w_RST <= "not"(w_LOCKED);
+	o_LEDR <= LEDR;
+	o_HEX5 <= HEX5;
+	o_HEX4 <= HEX4;
+	o_HEX3 <= HEX3;
+	o_HEX2 <= HEX2;
+	o_HEX1 <= HEX1;
+	o_HEX0 <= HEX0;
+	
 	U1 : PLL
 	port map
 	(
@@ -96,8 +111,12 @@ begin
 		o_TX		=> o_TX
 	);
 
-	w_RST <= not w_LOCKED;
-	o_LEDR <= LEDR;
 	LEDR <= SW;
+	HEX5 <= SW(6 downto 0);
+	HEX4 <= SW(6 downto 0);
+	HEX3 <= SW(6 downto 0);
+	HEX2 <= SW(6 downto 0);
+	HEX1 <= SW(6 downto 0);
+	HEX0 <= SW(6 downto 0);
 
 end rtl;
