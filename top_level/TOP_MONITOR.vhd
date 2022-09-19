@@ -13,9 +13,7 @@ port
 	i_RX		:	in std_logic;
 	i_CLK		:	in std_logic;
 	i_RST		:	in std_logic;
-	o_TX		:	out std_logic;
-	o_RST		:	out std_logic;
-	o_PINS	:	out std_logic_vector(8 downto 0)
+	o_TX		:	out std_logic
 );
 end TOP_MONITOR;
 
@@ -76,8 +74,6 @@ begin
 		o_PINS	=> w_PINS
 	);
 
-	o_PINS <= w_PINS(8 downto 0);
-	o_RST	<=	w_LOCKED;
 	w_RST <= not w_LOCKED;
 
 end rtl;

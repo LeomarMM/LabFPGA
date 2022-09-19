@@ -36,10 +36,10 @@ end MONITOR;
 architecture behavioral of MONITOR is
 
 	type top_state is (IDLE, RECV, FILL_BUFFER, 
-	CRC_RESET, CRC_FEED, CRC_COUNT, LOAD_ACK, 
+	PRE_CRC, CRC_FEED, CRC_COUNT, LOAD_ACK, 
 	START_RESPONSE, SEND_RESPONSE, CHANGE_MODE,
-	FILL_OUTPUT, LOAD_PINS, LOAD_CRC, COUNT_RST, 
-	COUNT_SENT,	RESET_BUFFER);
+	FILL_OUTPUT, LOAD_PINS, LOAD_CRC, COUNT_CLEAR, 
+	COUNT_SENT,	RESET_MACH);
 	attribute syn_encoding : string;
 	attribute syn_encoding of top_state :  type is "safe";
 	
@@ -130,10 +130,10 @@ architecture behavioral of MONITOR is
 	signal w_LS			:	std_logic;
 	signal w_RECV		:	std_logic;
 	signal w_RTS		:	std_logic;
-	signal r_BUFFER	:	std_logic_vector(buffer_size downto 0) := (0 => '1', OTHERS => '0');
+	signal r_BUFFER	:	std_logic_vector(buffer_size-1 downto 0) := (OTHERS => '0');
 	signal r_MODE		:	std_logic := '0';
 	signal r_OUTPUT	:	std_logic_vector(output_size-1 downto 0) := (OTHERS => '0');
-	signal t_STATE		:	top_state := RESET_BUFFER;
+	signal t_STATE		:	top_state := RESET_MACH;
 
 begin
 
@@ -201,10 +201,10 @@ begin
 	process(i_CLK, w_BUF_RST)
 	begin
 		if(w_BUF_RST = '1') then
-			r_BUFFER <= (0 => '1', OTHERS => '0');
+			r_BUFFER <= (OTHERS => '0');
 		elsif(falling_edge(i_CLK)) then
 			if(t_STATE = FILL_BUFFER) then
-				r_BUFFER <= r_BUFFER(output_size downto 0) & w_DATA_RX;
+				r_BUFFER <= r_BUFFER(output_size-1 downto 0) & w_DATA_RX;
 			elsif(t_STATE = LOAD_ACK) then
 				if(w_EQ = '1') then
 					r_BUFFER(buffer_size-1 downto output_size) <= ACK;
@@ -212,7 +212,7 @@ begin
 					r_BUFFER(buffer_size-1 downto output_size) <= NAK;
 				end if;
 			elsif(t_STATE = LOAD_PINS) then
-				r_BUFFER <= '1' & i_PINS & x"00";
+				r_BUFFER <= i_PINS & x"00";
 			elsif(t_STATE = LOAD_CRC) then
 				r_BUFFER(7 downto 0) <= w_CRC_OUT;
 			end if;
@@ -235,7 +235,7 @@ begin
 	-- Registradores de modo
 	process(i_CLK, t_STATE)
 	begin
-		if(t_STATE = RESET_BUFFER) then
+		if(t_STATE = RESET_MACH) then
 			r_MODE <= '0';
 		elsif(falling_edge(i_CLK)) then
 			if(t_STATE = CHANGE_MODE) then
@@ -248,7 +248,7 @@ begin
 	process(i_CLK, i_RST)
 	begin
 		if(i_RST = '1') then
-			t_STATE <= RESET_BUFFER;
+			t_STATE <= RESET_MACH;
 		elsif(rising_edge(i_CLK)) then
 			case t_STATE is
 				when IDLE =>
@@ -265,20 +265,24 @@ begin
 					end if;
 				when FILL_BUFFER =>
 					if(r_MODE = '0') then
-						if(r_BUFFER(r_BUFFER'high) = '1') then
-							t_STATE <= CRC_RESET;
-						else
-							t_STATE <= IDLE;
-						end if;
+						t_STATE <= COUNT_SENT;
 					else
 						if(w_CNT2_EQ = '1') then
-							t_STATE <= RESET_BUFFER;
+							t_STATE <= RESET_MACH;
 						else
 							t_STATE <= START_RESPONSE;
 						end if;
 					end if;
-				when CRC_RESET =>
-					t_STATE <= CRC_FEED;
+				when PRE_CRC =>
+					if(r_MODE = '0') then
+						if(w_CNT2_EQ = '1') then
+							t_STATE <= CRC_FEED;
+						else
+							t_STATE <= IDLE;
+						end if;
+					else
+						t_STATE <= CRC_FEED;
+					end if;
 				when CRC_FEED =>
 					if(w_CNT1_EQ = '1') then
 						if(r_MODE = '0') then
@@ -314,14 +318,18 @@ begin
 				when CHANGE_MODE =>
 					t_STATE <= LOAD_PINS;
 				when LOAD_PINS	=>
-					t_STATE <= CRC_RESET;
+					t_STATE <= PRE_CRC;
 				when LOAD_CRC =>
-					t_STATE <= COUNT_RST;
-				when COUNT_RST =>
+					t_STATE <= COUNT_CLEAR;
+				when COUNT_CLEAR =>
 					t_STATE <= START_RESPONSE;
 				when COUNT_SENT =>
-					t_STATE <= FILL_BUFFER;
-				when RESET_BUFFER =>
+					if(r_MODE = '1') then
+						t_STATE <= FILL_BUFFER;
+					else
+						t_STATE <= PRE_CRC;
+					end if;
+				when RESET_MACH =>
 					t_STATE <= IDLE;
 			end case;
 		end if;
@@ -336,13 +344,16 @@ begin
 	w_EQ <= '1' when r_BUFFER(7 downto 0) = w_CRC_OUT else '0';
 
 	-- Fios Dependentes de Estados
-	w_BUF_RST <= '1' when t_STATE = RESET_BUFFER else '0';
-	w_CRC_ENA <= '1' when t_STATE = CRC_FEED else '0';
-	w_CRC_RST <= '1' when t_STATE = CRC_RESET else '0';
+	w_BUF_RST <= '1'	when t_STATE = RESET_MACH else '0';
+	w_CRC_ENA <= '1'	when t_STATE = CRC_FEED else '0';
+	w_CRC_RST <= '1'	when t_STATE = PRE_CRC or
+							t_STATE = RESET_MACH else '0';
 	w_CNT1_ENA <= '1' when t_STATE = CRC_COUNT else '0';
-	w_CNT1_RST <= '1' when t_STATE = CRC_RESET else '0';
+	w_CNT1_RST <= '1' when t_STATE = PRE_CRC or
+							t_STATE = RESET_MACH else '0';
 	w_CNT2_ENA <= '1' when t_STATE = COUNT_SENT else '0';
-	w_CNT2_RST <= '1' when t_STATE = COUNT_RST else '0';
+	w_CNT2_RST <= '1' when t_STATE = COUNT_CLEAR or
+							t_STATE = RESET_MACH else '0';
 	w_LS	<= '0' when t_STATE = START_RESPONSE else '1';
 
 end behavioral;

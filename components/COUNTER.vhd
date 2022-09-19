@@ -39,7 +39,7 @@ end COUNTER;
 
 architecture behavioral of COUNTER is
 
-	signal r_COUNTER	:	integer range 0 to max_count := 0;
+	signal r_COUNTER	:	integer range 0 to max_count;
 	signal w_EQ			:	std_logic;
 
 begin
