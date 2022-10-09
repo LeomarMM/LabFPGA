@@ -5,8 +5,7 @@ entity TOP_DE1SoC is
 generic
 (
 	baud				:	integer := 9600;
-	clock				:	integer := 100000000;
-	bytes				:	integer := 11
+	clock				:	integer := 100000000
 );
 port
 (

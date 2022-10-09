@@ -11,3 +11,4 @@ output_files/*
 !output_files/LabFPGA.cdf
 simulation
 work
+*/__pycache__

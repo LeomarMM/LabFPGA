@@ -39,7 +39,8 @@ architecture behavioral of MONITOR is
 	PRE_CRC, CRC_FEED, CRC_COUNT, LOAD_ACK, 
 	START_RESPONSE, SEND_RESPONSE, CHANGE_MODE,
 	FILL_OUTPUT, LOAD_PINS, LOAD_CRC, COUNT_CLEAR, 
-	COUNT_SENT,	RESET_MACH);
+	COUNT_SENT,	WAIT_RESPONSE, RECV_RESPONSE, 
+	CHECK_RESPONSE, RESET_MACH);
 	attribute syn_encoding : string;
 	attribute syn_encoding of top_state :  type is "safe";
 	
@@ -110,30 +111,31 @@ architecture behavioral of MONITOR is
 	);
 	end component;
 
-	constant ACK		:	std_logic_vector(7 downto 0) := x"06";
-	constant NAK		:	std_logic_vector(7 downto 0) := x"15";
-	signal w_BUF_RST	:	std_logic;
-	signal w_BUF_CRC	:	std_logic_vector(buffer_size-1 downto 0);
-	signal w_CNT1_ENA	:	std_logic;
-	signal w_CNT1_EQ	:	std_logic;
-	signal w_CNT1_RST	:	std_logic;
-	signal w_CNT1_VAL	:	integer range 0 to buffer_size - 1;
-	signal w_CNT2_ENA	:	std_logic;
-	signal w_CNT2_EQ	:	std_logic;
-	signal w_CNT2_RST	:	std_logic;
-	signal w_CRC_DATA	:	std_logic;
-	signal w_CRC_ENA	:	std_logic;
-	signal w_CRC_OUT	:	std_logic_vector(7 downto 0);
-	signal w_CRC_RST	:	std_logic;
-	signal w_DATA_RX 	:	std_logic_vector(7 downto 0);
-	signal w_EQ			:	std_logic;
-	signal w_LS			:	std_logic;
-	signal w_RECV		:	std_logic;
-	signal w_RTS		:	std_logic;
-	signal r_BUFFER	:	std_logic_vector(buffer_size-1 downto 0) := (OTHERS => '0');
-	signal r_MODE		:	std_logic := '0';
-	signal r_OUTPUT	:	std_logic_vector(output_size-1 downto 0) := (OTHERS => '0');
-	signal t_STATE		:	top_state := RESET_MACH;
+	constant ACK			:	std_logic_vector(7 downto 0) := x"06";
+	constant NAK			:	std_logic_vector(7 downto 0) := x"15";
+	signal w_BUF_RST		:	std_logic;
+	signal w_BUF_CRC		:	std_logic_vector(buffer_size-1 downto 0);
+	signal w_CNT1_ENA		:	std_logic;
+	signal w_CNT1_EQ		:	std_logic;
+	signal w_CNT1_RST		:	std_logic;
+	signal w_CNT1_VAL		:	integer range 0 to buffer_size - 1;
+	signal w_CNT2_ENA		:	std_logic;
+	signal w_CNT2_EQ		:	std_logic;
+	signal w_CNT2_RST		:	std_logic;
+	signal w_CRC_DATA		:	std_logic;
+	signal w_CRC_ENA		:	std_logic;
+	signal w_CRC_OUT		:	std_logic_vector(7 downto 0);
+	signal w_CRC_RST		:	std_logic;
+	signal w_DATA_RX 		:	std_logic_vector(7 downto 0);
+	signal w_EQ				:	std_logic;
+	signal w_LS				:	std_logic;
+	signal w_OUTPUT_ENA	:	std_logic;
+	signal w_RECV			:	std_logic;
+	signal w_RTS			:	std_logic;
+	signal r_BUFFER		:	std_logic_vector(buffer_size-1 downto 0) := (OTHERS => '0');
+	signal r_MODE			:	std_logic := '0';
+	signal r_OUTPUT		:	std_logic_vector(output_size-1 downto 0) := (OTHERS => '0');
+	signal t_STATE			:	top_state := RESET_MACH;
 
 begin
 
@@ -226,7 +228,7 @@ begin
 		if(i_RST = '1') then
 			r_OUTPUT <= (OTHERS => '0');
 		elsif(falling_edge(i_CLK)) then
-			if(t_STATE = FILL_OUTPUT and w_EQ = '1') then
+			if(w_OUTPUT_ENA = '1') then
 				r_OUTPUT <= r_BUFFER(buffer_size-1 downto 8);
 			end if;
 		end if;
@@ -268,7 +270,7 @@ begin
 						t_STATE <= COUNT_SENT;
 					else
 						if(w_CNT2_EQ = '1') then
-							t_STATE <= RESET_MACH;
+							t_STATE <= WAIT_RESPONSE;
 						else
 							t_STATE <= START_RESPONSE;
 						end if;
@@ -294,7 +296,7 @@ begin
 						t_STATE <= CRC_COUNT;
 					end if;
 				when CRC_COUNT =>
-						t_STATE <= CRC_FEED;
+					t_STATE <= CRC_FEED;
 				when FILL_OUTPUT =>
 					t_STATE <= LOAD_ACK;
 				when LOAD_ACK =>
@@ -316,7 +318,11 @@ begin
 						t_STATE <= SEND_RESPONSE;
 					end if;
 				when CHANGE_MODE =>
-					t_STATE <= LOAD_PINS;
+					if(w_EQ = '1') then
+						t_STATE <= LOAD_PINS;
+					else
+						t_STATE <= RESET_MACH;
+					end if;
 				when LOAD_PINS	=>
 					t_STATE <= PRE_CRC;
 				when LOAD_CRC =>
@@ -328,6 +334,24 @@ begin
 						t_STATE <= FILL_BUFFER;
 					else
 						t_STATE <= PRE_CRC;
+					end if;
+				when WAIT_RESPONSE =>
+					if(w_RECV = '1') then
+						t_STATE <= RECV_RESPONSE;
+					else
+						t_STATE <= WAIT_RESPONSE;
+					end if;
+				when RECV_RESPONSE =>
+					if(w_RECV = '0') then
+						t_STATE <= CHECK_RESPONSE;
+					else
+						t_STATE <= RECV_RESPONSE;
+					end if;
+				when CHECK_RESPONSE =>
+					if(w_DATA_RX = ACK) then
+						t_STATE <= RESET_MACH;
+					else
+						t_STATE <= LOAD_PINS;
 					end if;
 				when RESET_MACH =>
 					t_STATE <= IDLE;
@@ -355,5 +379,6 @@ begin
 	w_CNT2_RST <= '1' when t_STATE = COUNT_CLEAR or
 							t_STATE = RESET_MACH else '0';
 	w_LS	<= '0' when t_STATE = START_RESPONSE else '1';
+	w_OUTPUT_ENA <= '1' when t_STATE = FILL_OUTPUT and w_EQ = '1' else '0';
 
 end behavioral;

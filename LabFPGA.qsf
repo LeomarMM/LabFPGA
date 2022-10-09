@@ -50,7 +50,7 @@ set_global_assignment -name EDA_SIMULATION_TOOL "<None>"
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
-set_global_assignment -name NUM_PARALLEL_PROCESSORS 8
+set_global_assignment -name NUM_PARALLEL_PROCESSORS ALL
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_formal_verification
 set_global_assignment -name RTLV_SIMPLIFIED_LOGIC ON
 set_global_assignment -name RTLV_GROUP_RELATED_NODES ON
@@ -73,29 +73,6 @@ set_location_assignment PIN_V18 -to o_LEDR[3]
 set_location_assignment PIN_V17 -to o_LEDR[2]
 set_location_assignment PIN_W16 -to o_LEDR[1]
 set_location_assignment PIN_V16 -to o_LEDR[0]
-set_global_assignment -name SDC_FILE LabFPGA.sdc
-set_global_assignment -name VHDL_FILE components/COUNTER.vhd
-set_global_assignment -name VHDL_FILE components/CRC8.vhd
-set_global_assignment -name VHDL_FILE components/DE1SoC.vhd
-set_global_assignment -name VHDL_FILE components/EDGE_DETECTOR.vhd
-set_global_assignment -name VHDL_FILE components/MONITOR.vhd
-set_global_assignment -name VHDL_FILE components/PAR2SER.vhd
-set_global_assignment -name VHDL_FILE components/SER2PAR.vhd
-set_global_assignment -name VHDL_FILE components/UART_RX.vhd
-set_global_assignment -name VHDL_FILE components/UART_TX.vhd
-set_global_assignment -name QIP_FILE components/IP/PLL.qip
-set_global_assignment -name SIP_FILE components/IP/PLL.sip
-set_global_assignment -name VHDL_FILE components/helpers/DEBOUNCER.vhd
-set_global_assignment -name VHDL_FILE components/helpers/DECODER.vhd
-set_global_assignment -name VHDL_FILE testbenches/TB_CRC8.vhd
-set_global_assignment -name VHDL_FILE testbenches/TB_LOOPBACK.vhd
-set_global_assignment -name VHDL_FILE testbenches/TB_MONITOR.vhd
-set_global_assignment -name VHDL_FILE testbenches/TB_PAR2SER.vhd
-set_global_assignment -name VHDL_FILE testbenches/TB_SER2PAR.vhd
-set_global_assignment -name VHDL_FILE testbenches/TB_UART_RX.vhd
-set_global_assignment -name VHDL_FILE testbenches/TB_UART_TX.vhd
-set_global_assignment -name VHDL_FILE top_level/TOP_DE1SoC.vhd
-set_global_assignment -name VHDL_FILE top_level/TOP_MONITOR.vhd
 set_location_assignment PIN_AE26 -to o_HEX0[0]
 set_location_assignment PIN_AE27 -to o_HEX0[1]
 set_location_assignment PIN_AE28 -to o_HEX0[2]
@@ -142,4 +119,28 @@ set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to i_RX
+set_global_assignment -name SDC_FILE LabFPGA.sdc
+set_global_assignment -name VHDL_FILE components/COUNTER.vhd
+set_global_assignment -name VHDL_FILE components/CRC8.vhd
+set_global_assignment -name VHDL_FILE components/DE1SoC.vhd
+set_global_assignment -name VHDL_FILE components/EDGE_DETECTOR.vhd
+set_global_assignment -name VHDL_FILE components/MONITOR.vhd
+set_global_assignment -name VHDL_FILE components/PAR2SER.vhd
+set_global_assignment -name VHDL_FILE components/SER2PAR.vhd
+set_global_assignment -name VHDL_FILE components/UART_RX.vhd
+set_global_assignment -name VHDL_FILE components/UART_TX.vhd
+set_global_assignment -name QIP_FILE components/IP/PLL.qip
+set_global_assignment -name SIP_FILE components/IP/PLL.sip
+set_global_assignment -name VHDL_FILE components/helpers/DEBOUNCER.vhd
+set_global_assignment -name VHDL_FILE components/helpers/DECODER.vhd
+set_global_assignment -name VHDL_FILE testbenches/TB_CRC8.vhd
+set_global_assignment -name VHDL_FILE testbenches/TB_LOOPBACK.vhd
+set_global_assignment -name VHDL_FILE testbenches/TB_MONITOR.vhd
+set_global_assignment -name VHDL_FILE testbenches/TB_PAR2SER.vhd
+set_global_assignment -name VHDL_FILE testbenches/TB_SER2PAR.vhd
+set_global_assignment -name VHDL_FILE testbenches/TB_UART_RX.vhd
+set_global_assignment -name VHDL_FILE testbenches/TB_UART_TX.vhd
+set_global_assignment -name VHDL_FILE top_level/TOP_DE1SoC.vhd
+set_global_assignment -name VHDL_FILE top_level/TOP_LOOPBACK.vhd
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+set_global_assignment -name TIMING_ANALYZER_MULTICORNER_ANALYSIS ON
