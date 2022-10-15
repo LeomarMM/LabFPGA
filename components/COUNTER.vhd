@@ -1,11 +1,12 @@
 --*************************************************************************************
 --
--- Módulo		: COUNTER_CLK
--- Descrição	: Componente para geraçao de clock por contador
+-- Módulo		: COUNTER
+-- Descrição	: Componente contador
 -- 
 -- Parâmetros Genéricos:
 --
---					max_count	--> Contagem a ser alcançada para alternação do nível do clock
+--					max_count	--> Vezes a serem contadas.
+--					reverse		--> Se '0', contar do 0 ao número máximo, se não, contar do valor máximo para zero.
 --
 -- Entradas:
 --					i_CLK			--> Sinal de clock para o contador.
@@ -26,6 +27,7 @@ generic
 (
 	max_count	:	integer := 50;
 	reverse		:	std_logic := '0'
+	
 );
 port
 (
@@ -37,9 +39,20 @@ port
 );
 end COUNTER;
 
+
+
 architecture behavioral of COUNTER is
 
-	signal r_COUNTER	:	integer range 0 to max_count;
+	function REG_START(cond: std_logic; v_true, v_false: integer) return integer is
+	begin
+		if (cond = '1') then
+			return v_true;
+		else
+			return v_false;
+		end if;
+	end function REG_START;
+
+	signal r_COUNTER	:	integer range 0 to max_count := REG_START(reverse, max_count, 0);
 	signal w_EQ			:	std_logic;
 
 begin
