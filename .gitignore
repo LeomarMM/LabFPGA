@@ -5,10 +5,10 @@
 *.qws
 *.txt
 *.wlf
-db
-incremental_db
-output_files/*
-!output_files/LabFPGA.cdf
-simulation
-work
+*/db
+*/incremental_db
+*/output_files/*
+*/!output_files/LabFPGA.cdf
+*/simulation
+*/work
 */__pycache__
