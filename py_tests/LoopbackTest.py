@@ -37,7 +37,7 @@ input_bytes = int_input('Packet payload in bytes: ')
 delta_s = int_input('Time to wait in seconds: ')
 time_now = datetime.now()
 finish_time = time_now + timedelta(seconds = delta_s)
-print("Running FPGA design test from " + time_now.strftime("%H:%M:%S") + " until " + finish_time.strftime("%H:%M:%S") + "...")
+print("Running FPGA design test from " + time_now.strftime("[%d/%b/%Y - %H:%M:%S]") + " until " + finish_time.strftime("[%d/%b/%Y - %H:%M:%S]") + "...")
 failures = [0, 0, 0]
 tests = 0
 

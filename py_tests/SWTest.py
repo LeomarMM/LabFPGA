@@ -36,4 +36,4 @@ ser = port_input('Port: ')
 while(1):
     b = int_input('Value to send: ').to_bytes(2, byteorder='big')
     b = b + b'\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-    print(send_fpga(input_bytes, ser, crc_obj, b))
+    send_fpga(input_bytes, ser, crc_obj, b)

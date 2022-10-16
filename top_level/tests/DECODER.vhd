@@ -1,7 +1,5 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 
 entity DECODER is
@@ -25,7 +23,6 @@ begin
 	begin
 		if (i_RST = '1') then
 			o_DISPLAY <= (OTHERS => w_OFF);
-		
 		else
 			case i_NUMERO is 
 				when x"0" => 
