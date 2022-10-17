@@ -61,7 +61,7 @@ architecture rtl of TOP_DE1SoC is
 
 	signal w_CLK		: std_logic;
 	signal w_LOCKED	: std_logic;
-	signal w_RST		: std_logic;
+	signal w_PLLRST		: std_logic;
 	signal HEX5			: std_logic_vector(6 downto 0);
 	signal HEX4			: std_logic_vector(6 downto 0);
 	signal HEX3			: std_logic_vector(6 downto 0);
@@ -77,19 +77,21 @@ architecture rtl of TOP_DE1SoC is
 	component CHRONO_COUNTER
 	generic
 	(
-		clock	:	integer := clock
+		clock	:	integer := clock;
+		cmax	:	integer;
+		dmax	:	std_logic_vector(23 downto 0) := x"9959FF"
 	);
 	port
 	(
-		i_RST		:	in	std_logic;
-		i_CLK		:	in	std_logic;
-		i_ENA		:	in std_logic;
-		o_MINMSN	:	out std_logic_vector(3 downto 0);
-		o_MINLSN	:	out std_logic_vector(3 downto 0);
-		o_SECMSN	:	out std_logic_vector(3 downto 0);
-		o_SECLSN	:	out std_logic_vector(3 downto 0);
-		o_CSMSN	:	out std_logic_vector(3 downto 0);
-		o_CSLSN	:	out std_logic_vector(3 downto 0)
+		i_RST			:	in	std_logic;
+		i_CLK			:	in	std_logic;
+		i_ENA			:	in std_logic;
+		o_DISPLAY5	:	out std_logic_vector(3 downto 0);
+		o_DISPLAY4	:	out std_logic_vector(3 downto 0);
+		o_DISPLAY3	:	out std_logic_vector(3 downto 0);
+		o_DISPLAY2	:	out std_logic_vector(3 downto 0);
+		o_DISPLAY1	:	out std_logic_vector(3 downto 0);
+		o_DISPLAY0	:	out std_logic_vector(3 downto 0)
 	);
 	end component;
 	
@@ -102,17 +104,18 @@ architecture rtl of TOP_DE1SoC is
 	);
 	end component;
 	
-	signal w_MINMSN	:	std_logic_vector(3 downto 0);
-	signal w_MINLSN	:	std_logic_vector(3 downto 0);
-	signal w_SECMSN	:	std_logic_vector(3 downto 0);
-	signal w_SECLSN	:	std_logic_vector(3 downto 0);
-	signal w_CSMSN		:	std_logic_vector(3 downto 0);
-	signal w_CSLSN		:	std_logic_vector(3 downto 0);
+	signal w_DISPLAY5	:	std_logic_vector(3 downto 0);
+	signal w_DISPLAY4	:	std_logic_vector(3 downto 0);
+	signal w_DISPLAY3	:	std_logic_vector(3 downto 0);
+	signal w_DISPLAY2	:	std_logic_vector(3 downto 0);
+	signal w_DISPLAY1	:	std_logic_vector(3 downto 0);
+	signal w_DISPLAY0	:	std_logic_vector(3 downto 0);
+	signal w_RST		:	std_logic;
 
 	-- End of signal and component declaration region
 begin
 	
-	w_RST <= "not"(w_LOCKED);
+	w_PLLRST <= "not"(w_LOCKED);
 	o_LEDR <= LEDR;
 	o_HEX5 <= HEX5;
 	o_HEX4 <= HEX4;
@@ -135,7 +138,7 @@ begin
 	(
 		i_CLK		=> w_CLK,
 		i_RX		=> i_RX,
-		i_RST		=> w_RST,
+		i_RST		=> w_PLLRST,
 		i_LEDS	=> LEDR,
 		i_7S5		=> HEX5,
 		i_7S4		=> HEX4,
@@ -151,23 +154,27 @@ begin
 	-- Implement your logic inside this region
 
 	U3 : CHRONO_COUNTER
+	generic map
+	(
+		cmax	=> clock/256
+	)
 	port map
 	(
-		i_RST		=>	w_RST,
-		i_CLK		=>	w_CLK,
-		i_ENA		=>	'1',
-		o_MINMSN	=>	w_MINMSN,
-		o_MINLSN	=>	w_MINLSN,
-		o_SECMSN	=>	w_SECMSN,
-		o_SECLSN	=>	w_SECLSN,
-		o_CSMSN	=> w_CSMSN,
-		o_CSLSN	=> w_CSLSN
+		i_RST			=>	w_RST,
+		i_CLK			=>	w_CLK,
+		i_ENA			=>	"not"(SW(1)),
+		o_DISPLAY5	=>	w_DISPLAY5,
+		o_DISPLAY4	=>	w_DISPLAY4,
+		o_DISPLAY3	=>	w_DISPLAY3,
+		o_DISPLAY2	=>	w_DISPLAY2,
+		o_DISPLAY1	=> w_DISPLAY1,
+		o_DISPLAY0	=> w_DISPLAY0
 	);
 	
 	DEC_HEX5 : DECODER
 	port map
 	(
-		i_NUMERO		=>	w_MINMSN,
+		i_NUMERO		=>	w_DISPLAY5,
 		i_RST			=> w_RST,
 		o_DISPLAY	=> HEX5
 	);
@@ -175,7 +182,7 @@ begin
 	DEC_HEX4 : DECODER
 	port map
 	(
-		i_NUMERO		=>	w_MINLSN,
+		i_NUMERO		=>	w_DISPLAY4,
 		i_RST			=> w_RST,
 		o_DISPLAY	=> HEX4
 	);
@@ -183,7 +190,7 @@ begin
 	DEC_HEX3 : DECODER
 	port map
 	(
-		i_NUMERO		=>	w_SECMSN,
+		i_NUMERO		=>	w_DISPLAY3,
 		i_RST			=> w_RST,
 		o_DISPLAY	=> HEX3
 	);
@@ -191,7 +198,7 @@ begin
 	DEC_HEX2 : DECODER
 	port map
 	(
-		i_NUMERO		=>	w_SECLSN,
+		i_NUMERO		=>	w_DISPLAY2,
 		i_RST			=> w_RST,
 		o_DISPLAY	=> HEX2
 	);
@@ -199,7 +206,7 @@ begin
 	DEC_HEX1 : DECODER
 	port map
 	(
-		i_NUMERO		=>	w_CSMSN,
+		i_NUMERO		=>	w_DISPLAY1,
 		i_RST			=> w_RST,
 		o_DISPLAY	=> HEX1
 	);
@@ -207,12 +214,13 @@ begin
 	DEC_HEX0 : DECODER
 	port map
 	(
-		i_NUMERO		=>	w_CSLSN,
+		i_NUMERO		=>	w_DISPLAY0,
 		i_RST			=> w_RST,
 		o_DISPLAY	=> HEX0
 	);
 
 	LEDR <= SW;
+	w_RST <= SW(0) or w_PLLRST;
 
 	-- End of logic implementation region
 
