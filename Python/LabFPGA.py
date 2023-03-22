@@ -1,5 +1,5 @@
 import serial #pyserial
-from crc import CrcCalculator, Crc8, Configuration
+from crc import Crc8, Configuration
 
 def send_fpga(input_bytes, ser, crc, data):
 

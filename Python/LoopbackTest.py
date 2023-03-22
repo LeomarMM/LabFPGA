@@ -1,6 +1,6 @@
 import serial, random
 from datetime import datetime, timedelta
-from crc import CrcCalculator, Configuration
+from crc import Calculator, Configuration
 from LabFPGA import send_fpga
 
 fpga_poly = Configuration(
@@ -30,7 +30,7 @@ def port_input(str):
         except Exception:
             print("Error acquiring port.")
 
-crc_obj = CrcCalculator(fpga_poly)
+crc_obj = Calculator(fpga_poly)
 baud = int_input('Baud Rate: ')
 ser = port_input('Port: ')
 input_bytes = int_input('Packet payload in bytes: ')

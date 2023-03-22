@@ -1,5 +1,5 @@
 import serial #pyserial
-from crc import CrcCalculator, Crc8, Configuration
+from crc import Calculator, Crc8, Configuration
 from LabFPGA import send_fpga
 
 input_bytes = 11
@@ -30,7 +30,7 @@ def port_input(str):
         except Exception:
             print("Error acquiring port.")
 
-crc_obj = CrcCalculator(fpga_poly)
+crc_obj = Calculator(fpga_poly)
 baud = int_input('Baud Rate: ')
 ser = port_input('Port: ')
 while(1):
