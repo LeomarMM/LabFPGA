@@ -1,0 +1,1 @@
+const crc8 = require("./crc8/crc8.js");
