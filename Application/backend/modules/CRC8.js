@@ -1,10 +1,9 @@
-module.exports = class crc8
+module.exports = class CRC8
 {
     constructor(polynomial)
     {
         this.poly = polynomial
     }
-    
     calculateCRC(bytearray)
     {
         var crc = 0;
@@ -14,7 +13,6 @@ module.exports = class crc8
             {
                 var crc_7 = (crc >> 7) & 1;
                 var newCRC = crc_7 ^ ((_byte >> bit) & 1);
-                
                 for (var i = 1; i <= 7; i++)
                 {
                     var poly_i = (this.poly >> i) & 1;
