@@ -77,7 +77,6 @@ architecture behavioral of UART_TX is
 		i_RST				:	in std_logic;
 		i_CLK				:	in std_logic;	
 		i_SIGNAL			:	in std_logic;
-		o_EDGE_UP		:	out std_logic;
 		o_EDGE_DOWN		:	out std_logic
 	);
 	end component;
