@@ -5,7 +5,7 @@ def send_fpga(input_bytes, ser, crc, data):
 
     ##Transmission
     response = b'\x15'
-    sent_checksum = bytes([crc.calculate_checksum(data)])
+    sent_checksum = bytes([crc.checksum(data)])
     tx_fails = -1
     rx_fails = -1
     print("\n\n====================================================")
@@ -33,7 +33,7 @@ def send_fpga(input_bytes, ser, crc, data):
         fpga_checksum = ser.read()
         print(recv_msg.hex().upper(), end='')
         print(" - Checksum: 0x" + fpga_checksum.hex().upper())
-        checksum = bytes([crc.calculate_checksum(recv_msg)])
+        checksum = bytes([crc.checksum(recv_msg)])
         if(checksum == fpga_checksum):
             print("Message acknowledged: Sending ACK.")
             ser.write(b'\x06')
