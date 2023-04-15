@@ -5,4 +5,6 @@ const config = require('./config.json');
 
 /* Object initialization */
 serialPortObject = new SerialPort({path: config.port, baudRate: config.baudRate});
-monitor = new Monitor(serialPortObject, config.sizeInBytes, config.crcPolynomial);
+monitor = new Monitor(serialPortObject, 11, config.crcPolynomial);
+
+monitor.start();
