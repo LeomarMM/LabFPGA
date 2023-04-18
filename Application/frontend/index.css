@@ -9,7 +9,7 @@ html, body
 {
     width: 100%;
     height: 100%;
-    display:flex;
+    display: flex;
     justify-content: center;
     align-items: center;
 }
@@ -19,4 +19,6 @@ html, body
     border-style: solid;
     border-color: black;
     border-radius: 10px;
+    background-image: url("resources/DE1-SoC_Layout.png");
+    background-size: cover;
 }
