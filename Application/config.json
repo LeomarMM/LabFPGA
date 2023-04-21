@@ -2,5 +2,6 @@
     "baudRate": 9600,
     "port": "COM3",
     "sizeInBytes": 11,
-    "crcPolynomial": 47
+    "crcPolynomial": 47,
+    "expressPort": 3000
 }

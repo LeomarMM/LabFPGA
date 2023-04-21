@@ -18,7 +18,7 @@ html, body
     width: 60%;
     border-style: solid;
     border-color: black;
-    border-radius: 10px;
-    background-image: url("resources/DE1-SoC_Layout.png");
+    border-radius: 3%;
+    background-image: url("resources/fpga-board.png");
     background-size: cover;
 }
