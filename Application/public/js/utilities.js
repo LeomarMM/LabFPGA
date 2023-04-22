@@ -1,36 +1,132 @@
-const offsets =
+const properties =
 {
-    HEX5: {x: 82, y: 585},
-    HEX4: {x: 122, y: 585},
-    HEX3: {x: 183, y: 585},
-    HEX2: {x: 223, y: 585},
-    HEX1: {x: 285, y: 585},
-    HEX0: {x: 325, y: 585},
-    LED9: {x: 81, y: 659},
-    LED8: {x: 120, y: 659},
-    LED7: {x: 164, y: 659},
-    LED6: {x: 206, y: 659},
-    LED5: {x: 247, y: 659},
-    LED4: {x: 291, y: 659},
-    LED3: {x: 334, y: 659},
-    LED2: {x: 376, y: 659},
-    LED1: {x: 418, y: 659},
-    LED0: {x: 460, y: 659}
+    HEX5: 
+    {
+        renderCoords: {x: 82, y: 585}
+    },
+    HEX4: 
+    {
+        renderCoords: {x: 122, y: 585}
+    },
+    HEX3: 
+    {
+        renderCoords: {x: 183, y: 585}
+    },
+    HEX2: 
+    {
+        renderCoords: {x: 223, y: 585}
+    },
+    HEX1: 
+    {
+        renderCoords: {x: 285, y: 585}
+    },
+    HEX0: 
+    {
+        renderCoords: {x: 325, y: 585}
+    },
+    LEDR9: 
+    {
+        renderCoords: {x: 81, y: 659}
+    },
+    LEDR8: 
+    {
+        renderCoords: {x: 120, y: 659}
+    },
+    LEDR7: 
+    {
+        renderCoords: {x: 164, y: 659}
+    },
+    LEDR6: 
+    {
+        renderCoords: {x: 206, y: 659}
+    },
+    LEDR5: 
+    {
+        renderCoords: {x: 247, y: 659}
+    },
+    LEDR4: 
+    {
+        renderCoords: {x: 291, y: 659}
+    },
+    LEDR3: 
+    {
+        renderCoords: {x: 334, y: 659}
+    },
+    LEDR2: 
+    {
+        renderCoords: {x: 376, y: 659}
+    },
+    LEDR1: 
+    {
+        renderCoords: {x: 418, y: 659}
+    },
+    LEDR0: 
+    {
+        renderCoords: {x: 460, y: 659}
+    },
+    SW9:
+    {
+        clickArea: {xTop: 61, yTop: 700, xEnd: 94, yEnd: 769},
+        holdClick: false,
+        renderCoords: {xTop: 68, yTop: 717, yMid: 734}
+    },
+    SW8:
+    {
+        clickArea: {xTop: 104, yTop: 700, xEnd: 136, yEnd: 769},
+        holdClick: false,
+        renderCoords: {xTop: 111, yTop: 717, yMid: 734}
+    },
+    SW7:
+    {
+        clickArea: {xTop: 146, yTop: 700, xEnd: 179, yEnd: 769},
+        holdClick: false,
+        renderCoords: {xTop: 153, yTop: 717, yMid: 734}
+    },
+    SW6:
+    {
+        clickArea: {xTop: 189, yTop: 700, xEnd: 221, yEnd: 769},
+        holdClick: false,
+        renderCoords: {xTop: 196, yTop: 717, yMid: 734}
+    },
+    SW5:
+    {
+        clickArea: {xTop: 233, yTop: 700, xEnd: 265, yEnd: 769},
+        holdClick: false,
+        renderCoords: {xTop: 240, yTop: 717, yMid: 734}
+    },
+    SW4:
+    {
+        clickArea: {xTop: 275, yTop: 700, xEnd: 307, yEnd: 769},
+        holdClick: false,
+        renderCoords: {xTop: 282, yTop: 717, yMid: 734}
+    },
+    SW3:
+    {
+        clickArea: {xTop: 319, yTop: 700, xEnd: 351, yEnd: 769},
+        holdClick: false,
+        renderCoords: {xTop: 326, yTop: 717, yMid: 734}
+    },
+    SW2:
+    {
+        clickArea: {xTop: 361, yTop: 700, xEnd: 393, yEnd: 769},
+        holdClick: false,
+        renderCoords: {xTop: 368, yTop: 717, yMid: 734}
+    },
+    SW1:
+    {   
+        clickArea: {xTop: 405, yTop: 700, xEnd: 437, yEnd: 769},
+        holdClick: false,
+        renderCoords: {xTop: 412, yTop: 717, yMid: 734}
+    },
+    SW0:
+    {
+        clickArea: {xTop: 448, yTop: 700, xEnd: 480, yEnd: 769},
+        holdClick: false,
+        renderCoords: {xTop: 455, yTop: 717, yMid: 734}
+    }
 };
-const clickArea = 
-{
-    SW9: {xTop: 61, yTop: 700, xEnd: 94, yEnd: 769},
-    SW8: {xTop: 104, yTop: 700, xEnd: 136, yEnd: 769},
-    SW7: {xTop: 146, yTop: 700, xEnd: 179, yEnd: 769},
-    SW6: {xTop: 189, yTop: 700, xEnd: 221, yEnd: 769},
-    SW5: {xTop: 233, yTop: 700, xEnd: 265, yEnd: 769},
-    SW4: {xTop: 275, yTop: 700, xEnd: 307, yEnd: 769},
-    SW3: {xTop: 319, yTop: 700, xEnd: 351, yEnd: 769},
-    SW2: {xTop: 361, yTop: 700, xEnd: 393, yEnd: 769},
-    SW1: {xTop: 405, yTop: 700, xEnd: 437, yEnd: 769},
-    SW0: {xTop: 448, yTop: 700, xEnd: 480, yEnd: 769}
-}
-
+var isClicking = false;
+var clickedItem;
 var states = 
 {
     SW9: false,
@@ -49,28 +145,28 @@ var states =
     KEY0: false
 };
 
-function getXYClickPosition(canvasDocument, event)
+function getXYClickPosition(canvasDocument, event, isClick)
 {
     const rect = canvasDocument.getBoundingClientRect();
     const scaleX = canvasDocument.width / rect.width;
     const scaleY = canvasDocument.height / rect.height;
-    const x = (event.clientX - rect.left) * scaleX;
-    const y = (event.clientY - rect.top) * scaleY;
-    console.log(x,y);
+    const x = ((isClick ? event.clientX : event.touches[0].clientX) - rect.left) * scaleX;
+    const y = ((isClick ? event.clientY : event.touches[0].clientY) - rect.top) * scaleY;
     return [x, y];
 }
 
-function getClickedItem(canvasDocument, event)
+function getClickedItem(canvasDocument, event, isClick)
 {
-    const [x, y] = getXYClickPosition(canvasDocument, event);
-    for(item in clickArea)
+    const [x, y] = getXYClickPosition(canvasDocument, event, isClick);
+    for(item in properties)
     {
-        if(x >= clickArea[item].xTop 
-            && x <= clickArea[item].xEnd 
-            && y >= clickArea[item].yTop 
-            && y <= clickArea[item].yEnd)
+        if(properties[item].clickArea == undefined) continue;
+        if(x >= properties[item].clickArea.xTop 
+            && x <= properties[item].clickArea.xEnd 
+            && y >= properties[item].clickArea.yTop 
+            && y <= properties[item].clickArea.yEnd)
         {
-            return [item, true];
+            return [item, properties[item].holdClick];
         }
     }
     return [undefined, false];
