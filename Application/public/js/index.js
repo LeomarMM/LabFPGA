@@ -18,28 +18,3 @@ window.onload = function()
         render(canvasDocument, ctx, msg);
     };
 }
-
-function selectStart(canvasDocument, event, socket, isClick)
-{
-    event.preventDefault();
-    if(isClicking) return;
-    isClicking = true;
-    clickedItem = getClickedItem(canvasDocument, event, isClick);
-    const [item, holdClick] = clickedItem;
-    if(item == undefined) return;
-    if(holdClick) states[item] = true;
-    else states[item] = !states[item];
-    socket.send(JSON.stringify(states));
-}
-
-function selectEnd(canvasDocument, event, socket, isClick)
-{
-    event.preventDefault();
-    if(!isClicking) return;
-    isClicking = false;
-    const [item, holdClick] = clickedItem;
-    if(item == undefined) return;
-    if(holdClick)
-        states[item] = false;
-        socket.send(JSON.stringify(states));
-}

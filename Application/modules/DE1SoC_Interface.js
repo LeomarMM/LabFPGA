@@ -79,6 +79,10 @@ const toBinary = (data) =>
         tempNum += (data["SW"+i] << i);
     binData[0] = tempNum >> 8;
     binData[1] = tempNum & 0xFF;
+    tempNum = 0;
+    for(var i = 3; i >= 0; i--)
+        tempNum += (data["KEY"+i] << i);
+    binData[2] = tempNum;
     return binData;
 }
 module.exports = {toBinary, toDictionary};

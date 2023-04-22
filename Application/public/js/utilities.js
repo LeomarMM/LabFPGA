@@ -123,6 +123,26 @@ const properties =
         clickArea: {xTop: 448, yTop: 700, xEnd: 480, yEnd: 769},
         holdClick: false,
         renderCoords: {xTop: 455, yTop: 717, yMid: 734}
+    },
+    KEY3:
+    {
+        clickArea: {xTop: 501, yTop: 701, xEnd: 570, yEnd: 770},
+        holdClick: true
+    },
+    KEY2: 
+    {
+        clickArea: {xTop: 579, yTop: 701, xEnd: 648, yEnd: 770},
+        holdClick: true
+    },
+    KEY1: 
+    {
+        clickArea: {xTop: 657, yTop: 701, xEnd: 726, yEnd: 770},
+        holdClick: true
+    },
+    KEY0:
+    {
+        clickArea: {xTop: 734, yTop: 701, xEnd: 803, yEnd: 770},
+        holdClick: true
     }
 };
 var isClicking = false;
@@ -170,4 +190,30 @@ function getClickedItem(canvasDocument, event, isClick)
         }
     }
     return [undefined, false];
+}
+
+function selectStart(canvasDocument, event, socket, isClick)
+{
+    event.preventDefault();
+    if(isClicking) return;
+    isClicking = true;
+    clickedItem = getClickedItem(canvasDocument, event, isClick);
+    const [item, holdClick] = clickedItem;
+    if(item == undefined) return;
+    if(holdClick) states[item] = true;
+    else states[item] = !states[item];
+    socket.send(JSON.stringify(states));
+    console.log(states, item);
+}
+
+function selectEnd(canvasDocument, event, socket, isClick)
+{
+    event.preventDefault();
+    if(!isClicking) return;
+    isClicking = false;
+    const [item, holdClick] = clickedItem;
+    if(item == undefined) return;
+    if(holdClick)
+        states[item] = false;
+        socket.send(JSON.stringify(states));
 }
