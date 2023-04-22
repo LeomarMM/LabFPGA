@@ -26,6 +26,8 @@ monitor.on('data', () =>
 
 wsServer.on('connection', (socket) =>
 {
+    const message = JSON.stringify(toDictionary(monitor.getData()));
+    socket.send(message);
     socket.on('message', (msg) =>
     {
         console.log("[I] Received new states from client.");

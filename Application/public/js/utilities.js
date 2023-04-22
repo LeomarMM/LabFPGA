@@ -203,7 +203,6 @@ function selectStart(canvasDocument, event, socket, isClick)
     if(holdClick) states[item] = true;
     else states[item] = !states[item];
     socket.send(JSON.stringify(states));
-    console.log(states, item);
 }
 
 function selectEnd(canvasDocument, event, socket, isClick)
