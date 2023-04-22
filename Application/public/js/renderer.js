@@ -38,5 +38,20 @@ function renderDisplay(context, data, offset)
     };
     for(id in positions)
         if(data[id]) 
-            context.drawImage(segments[id], positions[id].x + offset[0], positions[id].y + offset[1]);
+            context.drawImage(segments[id], positions[id].x + offset.x, positions[id].y + offset.y);
+}
+
+function render(canvasDocument, context, object)
+{
+    context.clearRect(0,0, canvasDocument.width, canvasDocument.height);
+    for(var i = 0; i<=5; i++)
+        renderDisplay(context, object["HEX"+i].value, offsets["HEX"+i]);
+    for(var i = 0; i<=9; i++)
+    {
+        if(!object["SW"+i].value) continue;
+        context.beginPath();
+        context.rect(offsets["LED"+i].x, offsets["LED"+i].y, 8, 15);
+        context.fillStyle = "red";
+        context.fill();
+    }
 }

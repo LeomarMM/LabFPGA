@@ -71,4 +71,14 @@ const toDictionary = (data) =>
     const displays = extractDisplayData(data.slice(5, 12));
     return Object.assign({}, switches, buttons, leds, displays);
 }
-module.exports = {toDictionary};
+const toBinary = (data) =>
+{
+    const binData = new Array(11).fill(0);
+    var tempNum = 0;
+    for(var i = 9; i >= 0; i--)
+        tempNum += (data["SW"+i] << i);
+    binData[0] = tempNum >> 8;
+    binData[1] = tempNum & 0xFF;
+    return binData;
+}
+module.exports = {toBinary, toDictionary};
