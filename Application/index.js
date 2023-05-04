@@ -16,7 +16,8 @@ const storage = multer.diskStorage(
         callback(null, 'user_bitstream.sof');
     }
 });
-const upload = multer({storage: storage})
+const upload = multer({storage: storage});
+
 /* Object initialization */
 var sockets = [];
 const serialPortObject = new SerialPort({path: config.port, baudRate: config.baudRate});
@@ -34,7 +35,10 @@ monitor.on('data', () =>
     const message = JSON.stringify(toDictionary(monitor.getData()));
     sockets.forEach(s => s.send(message));
 });
-
+monitor.on('stop', () =>
+{
+    console.log('[I] Stopped communication with FPGA.')
+});
 wsServer.on('connection', (socket) =>
 {
     const message = JSON.stringify(toDictionary(monitor.getData()));
@@ -64,7 +68,10 @@ expressServer.on('upgrade', (request, socket, head) =>
 
 expressApp.post('/upload', upload.single('bitstream'), (req, res, next) =>
 {
-   res.sendStatus(200); 
+    console.log('[I] Received a file to upload to FPGA.');
+    console.log('[I] Stopping communication with FPGA.');
+    monitor.stop();
+    res.sendStatus(200);
 });
   
 /* Module setup */

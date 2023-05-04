@@ -14,7 +14,7 @@ module.exports = class Monitor
     #fromFPGAOld;
     #eventEmitter;
     #transmission;
-
+    #stop;
     constructor(serialPortObject, sizeInBytes, crcPolynomial)
     {
         this.#crc = new CRC8(crcPolynomial);
@@ -23,6 +23,7 @@ module.exports = class Monitor
         this.#fromFPGA = new Array(this.#size).fill(0);
         this.#fromFPGAOld = new Array(this.#size).fill(0);
         this.#eventEmitter = new events.EventEmitter();
+        this.#stop = false;
         this.#transmission = 
         {
             buffer: new Array(),
@@ -78,6 +79,11 @@ module.exports = class Monitor
         this.#sendData();
     }
 
+    stop()
+    {
+        this.#stop = true;
+    }
+
     setData(dataToFPGA)
     {
         this.#toFPGA = [...dataToFPGA];
@@ -115,7 +121,12 @@ module.exports = class Monitor
             this.#fromFPGA = slicedBuffer;
             this.#transmission.state = 1;
             this.#transmission.serial.write(Buffer.from([0x06]));
-            this.#sendData();
+            if(this.#stop) 
+            {
+                this.#transmission.state = 0;
+                this.#eventEmitter.emit('stop');
+            }
+            else this.#sendData();
             if(!this.#fromFPGA.every((val, index) => val === this.#fromFPGAOld[index])) this.#eventEmitter.emit('data');
         }
         else
