@@ -6,6 +6,7 @@ const {toBinary, toDictionary} = require('./modules/DE1SoC_Interface.js');
 const WebSocket = require('ws');
 const express = require('express');
 const multer  = require('multer');
+const { exec } = require("child_process");
 const storage = multer.diskStorage(
 {
     destination: function (req, file, callback) 
@@ -37,7 +38,11 @@ monitor.on('data', () =>
 });
 monitor.on('stop', () =>
 {
-    console.log('[I] Stopped communication with FPGA.')
+    console.log('[I] Stopped communication with FPGA.');
+    exec(config.quartus_pgm + " -c 1 bitstreams/LabFPGA.cdf", (err, stdout, stderr) => 
+    {
+        monitor.start();
+    });
 });
 wsServer.on('connection', (socket) =>
 {

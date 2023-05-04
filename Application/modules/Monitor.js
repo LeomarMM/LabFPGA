@@ -19,9 +19,6 @@ module.exports = class Monitor
     {
         this.#crc = new CRC8(crcPolynomial);
         this.#size = sizeInBytes;
-        this.#toFPGA = new Array(this.#size).fill(0);
-        this.#fromFPGA = new Array(this.#size).fill(0);
-        this.#fromFPGAOld = new Array(this.#size).fill(0);
         this.#eventEmitter = new events.EventEmitter();
         this.#stop = false;
         this.#transmission = 
@@ -74,7 +71,11 @@ module.exports = class Monitor
 
     start()
     {
-        if(this.#transmission.state != 0) return;        
+        if(this.#transmission.state != 0) return;
+        this.#stop = false;  
+        this.#toFPGA = new Array(this.#size).fill(0);
+        this.#fromFPGA = new Array(this.#size).fill(0);
+        this.#fromFPGAOld = new Array(this.#size).fill(0);     
         this.#transmission.state = 1;
         this.#sendData();
     }
