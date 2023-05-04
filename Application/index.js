@@ -2,11 +2,22 @@
 const {SerialPort} = require('serialport');
 const Monitor = require('./modules/Monitor.js');
 const config = require('./config.json');
-const {toBinary, toDictionary} = require('./modules/DE1SoC_Interface.js');
+const {toBinary, toDictionary, startupValues} = require('./modules/DE1SoC_Interface.js');
 const WebSocket = require('ws');
 const express = require('express');
 const multer  = require('multer');
 const { exec } = require("child_process");
+
+/* Object initialization */
+var sockets = [];
+const serialPortObject = new SerialPort({path: config.port, baudRate: config.baudRate});
+const monitor = new Monitor(serialPortObject, 11, config.crcPolynomial);
+const wsServer = new WebSocket.Server({noServer: true});
+const expressApp = express();
+const expressServer = expressApp.listen(config.expressPort, () => 
+{
+    console.log(`[I] Express started on port ${config.expressPort}.`)
+})
 const storage = multer.diskStorage(
 {
     destination: function (req, file, callback) 
@@ -19,35 +30,38 @@ const storage = multer.diskStorage(
 });
 const upload = multer({storage: storage});
 
-/* Object initialization */
-var sockets = [];
-const serialPortObject = new SerialPort({path: config.port, baudRate: config.baudRate});
-const monitor = new Monitor(serialPortObject, 11, config.crcPolynomial);
-const wsServer = new WebSocket.Server({noServer: true});
-const expressApp = express();
-const expressServer = expressApp.listen(config.expressPort, () => 
+/* Events and Functions */
+function sendData()
 {
-    console.log(`[I] Express started on port ${config.expressPort}.`)
-})
-
-/* Events */
-monitor.on('data', () =>
-{
-    const message = JSON.stringify(toDictionary(monitor.getData()));
+    const rawMessage = (monitor.isStopped() ? startupValues : monitor.getData());
+    const message = JSON.stringify(toDictionary(rawMessage));
     sockets.forEach(s => s.send(message));
-});
-monitor.on('stop', () =>
+}
+
+function programFPGA(cdf)
 {
-    console.log('[I] Stopped communication with FPGA.');
-    exec(config.quartus_pgm + " -c 1 bitstreams/LabFPGA.cdf", (err, stdout, stderr) => 
+    console.log(`[I] Programming FPGA with ${cdf}.`);
+    exec(config.quartus_pgm + " -c 1 bitstreams/" + cdf + ".cdf", (err, stdout, stderr) => 
     {
         monitor.start();
     });
+}
+
+monitor.on('data', () =>
+{
+    sendData();
 });
+
+monitor.on('stop', () =>
+{
+    sendData();
+    console.log('[I] Stopped communication with FPGA.');
+    programFPGA("user_cdf");
+});
+
 wsServer.on('connection', (socket) =>
 {
-    const message = JSON.stringify(toDictionary(monitor.getData()));
-    socket.send(message);
+    sendData();
     socket.on('message', (msg) =>
     {
         console.log("[I] Received new states from client.");
@@ -81,4 +95,4 @@ expressApp.post('/upload', upload.single('bitstream'), (req, res, next) =>
   
 /* Module setup */
 expressApp.use(express.static('public'));
-monitor.start();
+programFPGA('default_cdf');

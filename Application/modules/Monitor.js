@@ -85,6 +85,11 @@ module.exports = class Monitor
         this.#stop = true;
     }
 
+    isStopped()
+    {
+        return this.#transmission.state == 0;
+    }
+    
     setData(dataToFPGA)
     {
         this.#toFPGA = [...dataToFPGA];
@@ -122,14 +127,14 @@ module.exports = class Monitor
             this.#fromFPGA = slicedBuffer;
             this.#transmission.state = 1;
             this.#transmission.serial.write(Buffer.from([0x06]));
+            if(!this.#fromFPGA.every((val, index) => val === this.#fromFPGAOld[index])) this.#eventEmitter.emit('data');
             if(this.#stop) 
             {
                 this.#transmission.state = 0;
                 this.#eventEmitter.emit('stop');
             }
             else this.#sendData();
-            if(!this.#fromFPGA.every((val, index) => val === this.#fromFPGAOld[index])) this.#eventEmitter.emit('data');
-        }
+            }
         else
         {
             //console.log("Server sending NAK.");

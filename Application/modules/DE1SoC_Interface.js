@@ -1,3 +1,4 @@
+var startupValues = [0, 0, 0, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF];
 const extractFromBytes = (uint8array, bytes, signal, componentName, componentDescription) => 
 {
     var extracted = 0;
@@ -85,4 +86,4 @@ const toBinary = (data) =>
     binData[2] = tempNum;
     return binData;
 }
-module.exports = {toBinary, toDictionary};
+module.exports = {toBinary, toDictionary, startupValues};
