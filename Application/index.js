@@ -29,15 +29,9 @@ const storage = multer.diskStorage(
     }
 });
 const upload = multer({storage: storage});
+var currentData = startupValues;
 
 /* Events and Functions */
-function sendData()
-{
-    const rawMessage = (monitor.isStopped() ? startupValues : monitor.getData());
-    const message = JSON.stringify(toDictionary(rawMessage));
-    sockets.forEach(s => s.send(message));
-}
-
 function programFPGA(cdf)
 {
     console.log(`[I] Programming FPGA with ${cdf}.`);
@@ -49,19 +43,20 @@ function programFPGA(cdf)
 
 monitor.on('data', () =>
 {
-    sendData();
+    currentData = JSON.stringify(toDictionary(monitor.getData()));
+    sockets.forEach(s => s.send((monitor.isStopped() ? startupValues : currentData)));
 });
 
 monitor.on('stop', () =>
 {
-    sendData();
+    sockets.forEach(s => s.send((monitor.isStopped() ? startupValues : currentData)));
     console.log('[I] Stopped communication with FPGA.');
     programFPGA("user_cdf");
 });
 
 wsServer.on('connection', (socket) =>
 {
-    sendData();
+    socket.send((monitor.isStopped() ? startupValues : currentData));
     socket.on('message', (msg) =>
     {
         console.log("[I] Received new states from client.");
