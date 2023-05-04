@@ -1,7 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
-entity TOP_DE1SoC is
+entity TOP_CHRONOMETER is
 generic
 (
 	baud				:	integer := 9600;
@@ -21,9 +21,9 @@ port
 	o_HEX1	:	out std_logic_vector(6 downto 0);
 	o_HEX0	:	out std_logic_vector(6 downto 0)
 );
-end TOP_DE1SoC;
+end TOP_CHRONOMETER;
 
-architecture rtl of TOP_DE1SoC is
+architecture rtl of TOP_CHRONOMETER is
 
 	component PLL
 	port
@@ -74,6 +74,43 @@ architecture rtl of TOP_DE1SoC is
 
 	-- Declare signals and components inside this region
 
+	component CHRONO_COUNTER
+	generic
+	(
+		clock	:	integer := clock;
+		cmax	:	integer;
+		dmax	:	std_logic_vector(23 downto 0) := x"9959FF"
+	);
+	port
+	(
+		i_RST			:	in	std_logic;
+		i_CLK			:	in	std_logic;
+		i_ENA			:	in std_logic;
+		o_DISPLAY5	:	out std_logic_vector(3 downto 0);
+		o_DISPLAY4	:	out std_logic_vector(3 downto 0);
+		o_DISPLAY3	:	out std_logic_vector(3 downto 0);
+		o_DISPLAY2	:	out std_logic_vector(3 downto 0);
+		o_DISPLAY1	:	out std_logic_vector(3 downto 0);
+		o_DISPLAY0	:	out std_logic_vector(3 downto 0)
+	);
+	end component;
+	
+	component DECODER
+	port
+	( 
+		i_NUMERO		: in  std_logic_vector(3 downto 0);
+		i_RST 		: in  std_logic;
+		o_DISPLAY  	: out std_logic_vector(6 downto 0)
+	);
+	end component;
+	
+	signal w_DISPLAY5	:	std_logic_vector(3 downto 0);
+	signal w_DISPLAY4	:	std_logic_vector(3 downto 0);
+	signal w_DISPLAY3	:	std_logic_vector(3 downto 0);
+	signal w_DISPLAY2	:	std_logic_vector(3 downto 0);
+	signal w_DISPLAY1	:	std_logic_vector(3 downto 0);
+	signal w_DISPLAY0	:	std_logic_vector(3 downto 0);
+	signal w_RST		:	std_logic;
 
 	-- End of signal and component declaration region
 begin
@@ -116,6 +153,74 @@ begin
 
 	-- Implement your logic inside this region
 
+	U3 : CHRONO_COUNTER
+	generic map
+	(
+		cmax	=> clock/256
+	)
+	port map
+	(
+		i_RST			=>	w_RST,
+		i_CLK			=>	w_CLK,
+		i_ENA			=>	"not"(SW(1)),
+		o_DISPLAY5	=>	w_DISPLAY5,
+		o_DISPLAY4	=>	w_DISPLAY4,
+		o_DISPLAY3	=>	w_DISPLAY3,
+		o_DISPLAY2	=>	w_DISPLAY2,
+		o_DISPLAY1	=> w_DISPLAY1,
+		o_DISPLAY0	=> w_DISPLAY0
+	);
+	
+	DEC_HEX5 : DECODER
+	port map
+	(
+		i_NUMERO		=>	w_DISPLAY5,
+		i_RST			=> w_RST,
+		o_DISPLAY	=> HEX5
+	);
+
+	DEC_HEX4 : DECODER
+	port map
+	(
+		i_NUMERO		=>	w_DISPLAY4,
+		i_RST			=> w_RST,
+		o_DISPLAY	=> HEX4
+	);
+
+	DEC_HEX3 : DECODER
+	port map
+	(
+		i_NUMERO		=>	w_DISPLAY3,
+		i_RST			=> w_RST,
+		o_DISPLAY	=> HEX3
+	);
+
+	DEC_HEX2 : DECODER
+	port map
+	(
+		i_NUMERO		=>	w_DISPLAY2,
+		i_RST			=> w_RST,
+		o_DISPLAY	=> HEX2
+	);
+
+	DEC_HEX1 : DECODER
+	port map
+	(
+		i_NUMERO		=>	w_DISPLAY1,
+		i_RST			=> w_RST,
+		o_DISPLAY	=> HEX1
+	);
+
+	DEC_HEX0 : DECODER
+	port map
+	(
+		i_NUMERO		=>	w_DISPLAY0,
+		i_RST			=> w_RST,
+		o_DISPLAY	=> HEX0
+	);
+
+	LEDR <= SW;
+	w_RST <= SW(0) or w_PLLRST;
 
 	-- End of logic implementation region
 

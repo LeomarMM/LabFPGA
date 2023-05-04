@@ -1,7 +1,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
-entity TOP_DE1SoC is
+entity TOP_DEFAULT is
 generic
 (
 	baud				:	integer := 9600;
@@ -21,9 +21,9 @@ port
 	o_HEX1	:	out std_logic_vector(6 downto 0);
 	o_HEX0	:	out std_logic_vector(6 downto 0)
 );
-end TOP_DE1SoC;
+end TOP_DEFAULT;
 
-architecture rtl of TOP_DE1SoC is
+architecture rtl of TOP_DEFAULT is
 
 	component PLL
 	port
@@ -116,7 +116,13 @@ begin
 
 	-- Implement your logic inside this region
 
-
+	HEX5 <= "0100001";
+	HEX4 <= "0000110";
+	HEX3 <= "1111001";
+	HEX2 <= "0010010";
+	HEX1 <= "1000000";
+	HEX0 <= "1000110";
+	LEDR <= "0000000000";
 	-- End of logic implementation region
 
 end rtl;
