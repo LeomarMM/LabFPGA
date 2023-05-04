@@ -1,6 +1,6 @@
 window.onload = function() 
 {
-    var canvasDocument = document.getElementById("boardCanvas");
+    var canvasDocument = document.getElementById("board-canvas");
     var ctx = canvasDocument.getContext("2d");
     for(var i = 0; i<=9; i++) renderSwitch("SW"+i, false, ctx);
     var socket = new WebSocket("ws://"+window.location.host);

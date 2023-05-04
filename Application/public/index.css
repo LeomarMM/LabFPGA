@@ -5,7 +5,7 @@ html, body
     margin: 0;
     background-color: #14222A;
 }
-#canvasDiv
+#main-div
 {
     width: 100%;
     height: 100%;
@@ -13,7 +13,7 @@ html, body
     justify-content: center;
     align-items: center;
 }
-#boardCanvas
+#board-canvas
 {
     width: 60%;
     border-style: solid;
