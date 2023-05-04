@@ -18,6 +18,7 @@ window.onload = function()
     file.onchange = () =>
     {
         form.submit();
+        file.value = null;
     }
     socket.onmessage = (event) => 
     {
