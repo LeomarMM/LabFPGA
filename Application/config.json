@@ -3,5 +3,6 @@
     "port": "COM3",
     "sizeInBytes": 11,
     "crcPolynomial": 47,
-    "expressPort": 3000
+    "expressPort": 3000,
+    "quartus_pgm": "D:\"Programas\"intelFPGA_lite\"21.1\"quartus\bin64\"quartus_pgm.exe"
 }

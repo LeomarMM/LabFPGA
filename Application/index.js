@@ -5,7 +5,18 @@ const config = require('./config.json');
 const {toBinary, toDictionary} = require('./modules/DE1SoC_Interface.js');
 const WebSocket = require('ws');
 const express = require('express');
-
+const multer  = require('multer');
+const storage = multer.diskStorage(
+{
+    destination: function (req, file, callback) 
+    {
+        callback(null, 'bitstreams');
+    },
+    filename: function (req, file, callback) {
+        callback(null, 'user_bitstream.sof');
+    }
+});
+const upload = multer({storage: storage})
 /* Object initialization */
 var sockets = [];
 const serialPortObject = new SerialPort({path: config.port, baudRate: config.baudRate});
@@ -51,6 +62,11 @@ expressServer.on('upgrade', (request, socket, head) =>
     });
 });
 
+expressApp.post('/upload', upload.single('bitstream'), (req, res, next) =>
+{
+   res.sendStatus(200); 
+});
+  
 /* Module setup */
 expressApp.use(express.static('public'));
 monitor.start();

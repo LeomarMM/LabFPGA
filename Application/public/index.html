@@ -8,7 +8,11 @@
     </head>
     <body>
         <div id ="main-div">
-            <canvas id="board-canvas"  width="990px" height="780px"></canvas>    
+            <canvas id="board-canvas"  width="990px" height="780px"></canvas>
+            <form name="bitstream-form" id="bts-form" enctype="multipart/form-data" action="/upload" method="post">
+                <input type="file" name="bitstream" id="bitstream-file"> 
+                <input type="button" value="Upload File" id="bitstream-button">
+            </form>
         </div>
     </body>
     <script type="text/javascript" src="js/utilities.js"></script>
