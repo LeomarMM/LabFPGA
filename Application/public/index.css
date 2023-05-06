@@ -23,3 +23,14 @@ html, body
     background-image: url("resources/fpga-board.png");
     background-size: cover;
 }
+#bitstream-button
+{
+    background-color: #1A3443;
+    border-style: solid;
+    border-color: black;
+    border-radius: 10%;
+    border-width: 3px;
+    color: white;
+    font-family: 'Roboto', sans-serif;
+    margin-top: 5px;
+}

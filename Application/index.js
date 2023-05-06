@@ -11,7 +11,7 @@ const { exec } = require("child_process");
 /* Object initialization */
 var sockets = [];
 const serialPortObject = new SerialPort({path: config.port, baudRate: config.baudRate});
-const monitor = new Monitor(serialPortObject, 11, config.crcPolynomial);
+const monitor = new Monitor(serialPortObject, config.sizeInBytes, config.crcPolynomial);
 const wsServer = new WebSocket.Server({noServer: true});
 const expressApp = express();
 const expressServer = expressApp.listen(config.expressPort, () => 
@@ -35,7 +35,7 @@ var currentData = startupValues;
 function programFPGA(cdf)
 {
     console.log(`[I] Programming FPGA with ${cdf}.`);
-    exec(config.quartus_pgm + " -c 1 bitstreams/" + cdf + ".cdf", (err, stdout, stderr) => 
+    exec(config.quartus_pgm + " -c "+config.quartus_pgm_port+" bitstreams/" + cdf + ".cdf", (err, stdout, stderr) => 
     {
         monitor.start();
     });
