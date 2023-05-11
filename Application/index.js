@@ -24,13 +24,13 @@ const storage = multer.diskStorage(
     {
         callback(null, 'bitstreams');
     },
-    filename: function (req, file, callback) {
+    filename: function (req, file, callback) 
+    {
         callback(null, 'user_bitstream.sof');
     }
 });
 const upload = multer({storage: storage});
 var currentData = startupValues;
-
 /* Events and Functions */
 function programFPGA(cdf)
 {
@@ -57,6 +57,7 @@ monitor.on('stop', () =>
 wsServer.on('connection', (socket) =>
 {
     socket.send((monitor.isStopped() ? startupValues : currentData));
+
     socket.on('message', (msg) =>
     {
         console.log("[I] Received new states from client.");
@@ -66,8 +67,10 @@ wsServer.on('connection', (socket) =>
 
     socket.on('close', () =>
     {
+        console.log("[I] Websockets connection closed.")
         sockets = sockets.filter(s => s !== socket);
     });
+
     sockets.push(socket);
 });
 
@@ -80,12 +83,18 @@ expressServer.on('upgrade', (request, socket, head) =>
     });
 });
 
-expressApp.post('/upload', upload.single('bitstream'), (req, res, next) =>
+expressApp.use(function (req, res, next) 
+{
+    console.log(`[I] Received HTTP request for ${req.originalUrl}`);
+    next();
+});
+
+expressApp.post('/upload', upload.single('bitstream'), (req, res) =>
 {
     console.log('[I] Received a file to upload to FPGA.');
     console.log('[I] Stopping communication with FPGA.');
     monitor.stop();
-    res.sendStatus(200);
+    res.status(200).end();
 });
   
 /* Module setup */

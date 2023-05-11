@@ -6,11 +6,10 @@ window.onload = function()
     var button = document.getElementById("bitstream-button");
     var ctx = canvasDocument.getContext("2d");
     for(var i = 0; i<=9; i++) renderSwitch("SW"+i, false, ctx);
-    var socket = new WebSocket("ws://"+window.location.host);
-    canvasDocument.addEventListener('touchstart', (event) => {selectStart(canvasDocument, event, socket, false)}, false);
-    canvasDocument.addEventListener('mousedown', (event) => {selectStart(canvasDocument, event, socket, true)}, false);
-    canvasDocument.addEventListener('touchend', (event) => {selectEnd(canvasDocument, event, socket, false)}, false);
-    canvasDocument.addEventListener('mouseup', (event) => {selectEnd(canvasDocument, event, socket, true)}, false);
+    canvasDocument.addEventListener('touchstart', (event) => {selectStart(canvasDocument, event, getSocket(), false)}, false);
+    canvasDocument.addEventListener('mousedown', (event) => {selectStart(canvasDocument, event, getSocket(), true)}, false);
+    canvasDocument.addEventListener('touchend', (event) => {selectEnd(canvasDocument, event, getSocket(), false)}, false);
+    canvasDocument.addEventListener('mouseup', (event) => {selectEnd(canvasDocument, event, getSocket(), true)}, false);
     button.onclick = () =>
     {
         file.click();
@@ -20,13 +19,5 @@ window.onload = function()
         form.submit();
         file.value = null;
     }
-    socket.onmessage = (event) => 
-    {
-        const msg = JSON.parse(event.data);
-        for(item in states)
-        {
-            states[item] = msg[item].value;
-        }
-        render(canvasDocument, ctx, msg);
-    };
+    startWs();
 }
