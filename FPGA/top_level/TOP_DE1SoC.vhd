@@ -76,6 +76,7 @@ architecture rtl of TOP_DE1SoC is
 
 
 	-- End of signal and component declaration region
+
 begin
 	
 	w_PLLRST <= "not"(w_LOCKED);
