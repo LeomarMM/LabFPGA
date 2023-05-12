@@ -75,7 +75,7 @@ module.exports = class Monitor
         this.#stop = false;  
         this.#toFPGA = new Array(this.#size).fill(0);
         this.#fromFPGA = new Array(this.#size).fill(0);
-        this.#fromFPGAOld = new Array(this.#size).fill(0);     
+        this.#fromFPGAOld = undefined;     
         this.#transmission.state = 1;
         this.#sendData();
     }
@@ -123,18 +123,18 @@ module.exports = class Monitor
         if(fpgaCRC == serverCRC) 
         {
             //console.log("Server sending ACK.");
-            this.#fromFPGAOld = this.#fromFPGA;
             this.#fromFPGA = slicedBuffer;
             this.#transmission.state = 1;
             this.#transmission.serial.write(Buffer.from([0x06]));
-            if(!this.#fromFPGA.every((val, index) => val === this.#fromFPGAOld[index])) this.#eventEmitter.emit('data');
+            if(this.#fromFPGAOld == undefined || !this.#fromFPGA.every((val, index) => val === this.#fromFPGAOld[index])) this.#eventEmitter.emit('data');
             if(this.#stop) 
             {
                 this.#transmission.state = 0;
                 this.#eventEmitter.emit('stop');
             }
             else this.#sendData();
-            }
+            this.#fromFPGAOld = this.#fromFPGA;
+        }
         else
         {
             //console.log("Server sending NAK.");
