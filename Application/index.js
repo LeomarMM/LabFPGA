@@ -54,6 +54,11 @@ monitor.on('stop', () =>
     programFPGA("user_cdf");
 });
 
+monitor.on('timeout', () =>
+{
+    console.log(`[!] Monitor watchdog timer triggered. Restarting transmission in 1s.`);
+});
+
 wsServer.on('connection', (socket) =>
 {
     socket.send((monitor.isStopped() ? startupValues : currentData));

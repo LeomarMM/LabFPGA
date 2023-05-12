@@ -15,6 +15,7 @@ module.exports = class Monitor
     #eventEmitter;
     #transmission;
     #stop;
+    #timeout;
     constructor(serialPortObject, sizeInBytes, crcPolynomial)
     {
         this.#crc = new CRC8(crcPolynomial);
@@ -36,25 +37,27 @@ module.exports = class Monitor
                     break;
 
                 case 1:
+                    clearTimeout(this.#timeout);
                     if(data[0] === 6)
                     {
-                        //console.log("Received ACK from FPGA.");
                         this.#transmission.state = 2;
                         data = data.subarray(1);
                     }
                     else
                     {
-                        //console.log("Did not receive ACK. Resending.")
+                        console.log("[!] FPGA did not return an ACK. Resending.");
                         this.#sendData();
                         break;
                     }
 
                 case 2:
+                    this.#resetWatchdog();
                     for (const word of data)
                     {
                         this.#transmission.buffer.push(word);
                         if(this.#transmission.buffer.length == this.#size + 1)
                         {
+                            clearTimeout(this.#timeout);
                             this.#respondFPGA();
                             break;
                         }
@@ -83,6 +86,12 @@ module.exports = class Monitor
     stop()
     {
         this.#stop = true;
+        setTimeout(() => 
+        {
+            this.#transmission.state = 0;
+            clearTimeout(this.#timeout);
+            this.#eventEmitter.emit('stop');
+        }, 1000);
     }
 
     isStopped()
@@ -111,7 +120,10 @@ module.exports = class Monitor
     #sendData()
     {
         var crcResult = this.#crcCheck(this.#toFPGA);
-        this.#transmission.serial.write(Buffer.from([...this.#toFPGA, crcResult]));
+        this.#transmission.serial.write(Buffer.from([...this.#toFPGA, crcResult]), (err) => 
+        {
+            this.#resetWatchdog();
+        });
     }
 
     #respondFPGA()
@@ -137,8 +149,22 @@ module.exports = class Monitor
         }
         else
         {
-            //console.log("Server sending NAK.");
+            console.log("[!] Received data CRC mismatch. Sending NAK.");
             this.#transmission.serial.write(Buffer.from([0x15]));
         }
+    }
+    #resetWatchdog()
+    {
+        clearTimeout(this.#timeout);
+        this.#timeout = setTimeout(() =>
+        {
+            this.#transmission.state = 0;
+            this.#eventEmitter.emit('timeout');
+            this.#timeout = setTimeout(()=>
+            {
+                this.#transmission.state = 1;
+                this.#sendData();
+            }, 1000);
+        }, 1000);
     }
 };
