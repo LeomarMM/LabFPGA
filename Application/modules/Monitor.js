@@ -88,9 +88,12 @@ module.exports = class Monitor
         this.#stop = true;
         setTimeout(() => 
         {
-            this.#transmission.state = 0;
-            clearTimeout(this.#timeout);
-            this.#eventEmitter.emit('stop');
+            if(this.#transmission.state != 0)
+            {
+                this.#transmission.state = 0;
+                clearTimeout(this.#timeout);
+                this.#eventEmitter.emit('stop');
+            }
         }, 1000);
     }
 

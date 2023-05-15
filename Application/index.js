@@ -20,17 +20,12 @@ const expressServer = expressApp.listen(config.expressPort, () =>
 })
 const storage = multer.diskStorage(
 {
-    destination: function (req, file, callback) 
-    {
-        callback(null, 'bitstreams');
-    },
-    filename: function (req, file, callback) 
-    {
-        callback(null, 'user_bitstream.sof');
-    }
+    destination: (req, file, callback) => {callback(null, 'bitstreams');},
+    filename: (req, file, callback) => {callback(null, 'user_bitstream.sof');}
 });
 const upload = multer({storage: storage});
 var currentData = startupValues;
+
 /* Events and Functions */
 function programFPGA(cdf)
 {
