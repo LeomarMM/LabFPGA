@@ -49,9 +49,9 @@ monitor.on('stop', () =>
     programFPGA("user_cdf");
 });
 
-monitor.on('timeout', () =>
+monitor.on('timeout', (e) =>
 {
-    console.log(`[!] Monitor watchdog timer triggered. Restarting transmission in 1s.`);
+    console.log(`[!] Timeout at state ${e.state}.`);
 });
 
 wsServer.on('connection', (socket) =>

@@ -161,8 +161,12 @@ module.exports = class Monitor
         clearTimeout(this.#timeout);
         this.#timeout = setTimeout(() =>
         {
+            var log = {
+                state: this.#transmission.state,
+                buffer: this.#transmission.buffer
+            };
+            this.#eventEmitter.emit('timeout', log);
             this.#transmission.state = 0;
-            this.#eventEmitter.emit('timeout');
             this.#timeout = setTimeout(()=>
             {
                 this.#transmission.state = 1;
