@@ -14,14 +14,12 @@ module.exports = class Monitor
     #fromFPGAOld;
     #eventEmitter;
     #transmission;
-    #stop;
     #timeout;
     constructor(serialPortObject, sizeInBytes, crcPolynomial)
     {
         this.#crc = new CRC8(crcPolynomial);
         this.#size = sizeInBytes;
         this.#eventEmitter = new events.EventEmitter();
-        this.#stop = false;
         this.#transmission = 
         {
             buffer: new Array(),
@@ -32,12 +30,11 @@ module.exports = class Monitor
         {
             switch(this.#transmission.state)
             {
-                case 0:
-                    console.log('Incoming data on inactive port: ', data);
+                default:
+                    this.#eventEmitter.emit('invalid_state', this.#transmission.state);
                     break;
-
                 case 1:
-                    clearTimeout(this.#timeout);
+                    this.#resetWatchdog();
                     if(data[0] === 6)
                     {
                         this.#transmission.state = 2;
@@ -57,7 +54,7 @@ module.exports = class Monitor
                         this.#transmission.buffer.push(word);
                         if(this.#transmission.buffer.length == this.#size + 1)
                         {
-                            clearTimeout(this.#timeout);
+                            this.#resetWatchdog();
                             this.#respondFPGA();
                             break;
                         }
@@ -75,26 +72,19 @@ module.exports = class Monitor
     start()
     {
         if(this.#transmission.state != 0) return;
-        this.#stop = false;  
         this.#toFPGA = new Array(this.#size).fill(0);
         this.#fromFPGA = new Array(this.#size).fill(0);
         this.#fromFPGAOld = undefined;     
         this.#transmission.state = 1;
+        this.#transmission.buffer.length = 0;
         this.#sendData();
     }
 
     stop()
     {
-        this.#stop = true;
-        setTimeout(() => 
-        {
-            if(this.#transmission.state != 0)
-            {
-                this.#transmission.state = 0;
-                clearTimeout(this.#timeout);
-                this.#eventEmitter.emit('stop');
-            }
-        }, 1000);
+        this.#transmission.state = 0;
+        clearTimeout(this.#timeout);
+        this.#eventEmitter.emit('stop');
     }
 
     isStopped()
@@ -137,17 +127,11 @@ module.exports = class Monitor
         this.#transmission.buffer.length = 0;
         if(fpgaCRC == serverCRC) 
         {
-            //console.log("Server sending ACK.");
             this.#fromFPGA = slicedBuffer;
             this.#transmission.state = 1;
             this.#transmission.serial.write(Buffer.from([0x06]));
             if(this.#fromFPGAOld == undefined || !this.#fromFPGA.every((val, index) => val === this.#fromFPGAOld[index])) this.#eventEmitter.emit('data');
-            if(this.#stop) 
-            {
-                this.#transmission.state = 0;
-                this.#eventEmitter.emit('stop');
-            }
-            else this.#sendData();
+            this.#sendData();
             this.#fromFPGAOld = this.#fromFPGA;
         }
         else
@@ -166,12 +150,17 @@ module.exports = class Monitor
                 buffer: this.#transmission.buffer
             };
             this.#eventEmitter.emit('timeout', log);
-            this.#transmission.state = 0;
+            this.clear();
             this.#timeout = setTimeout(()=>
             {
                 this.#transmission.state = 1;
                 this.#sendData();
             }, 1000);
         }, 1000);
+    }
+    clear()
+    {
+        this.#transmission.buffer.length = 0;
+        this.#transmission.state = 0;
     }
 };
