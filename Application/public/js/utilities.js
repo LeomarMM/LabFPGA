@@ -165,8 +165,7 @@ var states =
     KEY0: false
 };
 
-function getXYClickPosition(canvasDocument, event, isClick)
-{
+function getXYClickPosition(canvasDocument, event, isClick) {
     const rect = canvasDocument.getBoundingClientRect();
     const scaleX = canvasDocument.width / rect.width;
     const scaleY = canvasDocument.height / rect.height;
@@ -175,25 +174,21 @@ function getXYClickPosition(canvasDocument, event, isClick)
     return [x, y];
 }
 
-function getClickedItem(canvasDocument, event, isClick)
-{
+function getClickedItem(canvasDocument, event, isClick) {
     const [x, y] = getXYClickPosition(canvasDocument, event, isClick);
-    for(item in properties)
-    {
+    for(item in properties) {
         if(properties[item].clickArea == undefined) continue;
         if(x >= properties[item].clickArea.xTop 
             && x <= properties[item].clickArea.xEnd 
             && y >= properties[item].clickArea.yTop 
-            && y <= properties[item].clickArea.yEnd)
-        {
+            && y <= properties[item].clickArea.yEnd) {
             return [item, properties[item].holdClick];
         }
     }
     return [undefined, false];
 }
 
-function selectStart(canvasDocument, event, socket, isClick)
-{
+function selectStart(canvasDocument, event, socket, isClick) {
     event.preventDefault();
     if(isClicking) return;
     isClicking = true;
@@ -205,8 +200,7 @@ function selectStart(canvasDocument, event, socket, isClick)
     socket.send(JSON.stringify(states));
 }
 
-function selectEnd(canvasDocument, event, socket, isClick)
-{
+function selectEnd(canvasDocument, event, socket, isClick) {
     event.preventDefault();
     if(!isClicking) return;
     isClicking = false;
@@ -214,5 +208,5 @@ function selectEnd(canvasDocument, event, socket, isClick)
     if(item == undefined) return;
     if(holdClick)
         states[item] = false;
-        socket.send(JSON.stringify(states));
+    socket.send(JSON.stringify(states));
 }
