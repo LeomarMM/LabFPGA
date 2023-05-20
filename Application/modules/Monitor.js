@@ -25,7 +25,8 @@ module.exports = class Monitor {
             serial: serialPortObject,
             state: 0
         };
-        this.#transmission.serial.on('data', (data) => {
+        this.#transmission.serial.on('readable', () => {
+            var data = this.#transmission.serial.read();
             switch(this.#transmission.state) {
             default:
                 this.#eventEmitter.emit('invalid_state', this.#transmission.state);
