@@ -15,7 +15,7 @@ const monitor = new Monitor(serialPortObject, config.sizeInBytes, config.crcPoly
 const wsServer = new WebSocket.Server({noServer: true});
 const expressApp = express();
 const expressServer = expressApp.listen(config.expressPort, () => {
-    console.log(`[I] Express started on port ${config.expressPort}.`);
+    serverLog(`[I] Express started on port ${config.expressPort}.`);
 });
 const storage = multer.diskStorage(
     {
@@ -29,9 +29,18 @@ const storage = multer.diskStorage(
 const upload = multer({storage: storage});
 var currentData = startupValues;
 
+
 /* Events and Functions */
+function serverLog(message) {
+    var timeZoneOffset = (new Date()).getTimezoneOffset() * 60000;
+    var date = new Date((Date.now() - timeZoneOffset)).toISOString().
+        replace(/T/, ' ').      // replace T with a space
+        replace(/\..+/, '');     // delete the dot and everything after
+    console.log(`(${date}) ${message}`);
+}
+
 function programFPGA(cdf) {
-    console.log(`[I] Programming FPGA with ${cdf}.`);
+    serverLog(`[I] Programming FPGA with ${cdf}.`);
     exec(config.quartus_pgm + ' -c '+config.quartus_pgm_port+' bitstreams/' + cdf + '.cdf', () => {
         monitor.start();
     });
@@ -44,33 +53,33 @@ monitor.on('data', () => {
 
 monitor.on('stop', () => {
     sockets.forEach(s => s.send((monitor.isStopped() ? startupValues : currentData)));
-    console.log('[I] Stopped communication with FPGA.');
+    serverLog('[I] Stopped communication with FPGA.');
     programFPGA('user_cdf');
 });
 
 monitor.on('timeout', (e) => {
-    console.log(`[!] Timeout at state ${e.state}.`);
+    serverLog(`[!] Timeout at state ${e.state}.`);
 });
 
 monitor.on('fpga_nak', () => {
-    console.log('[!] FPGA did not return an ACK. Resending.');
+    serverLog('[!] FPGA did not return an ACK. Resending.');
 });
 
 monitor.on('server_nak', () => {
-    console.log('[!] Received data CRC mismatch. Sending NAK.');
+    serverLog('[!] Received data CRC mismatch. Sending NAK.');
 });
 
 wsServer.on('connection', (socket) => {
     socket.send((monitor.isStopped() ? startupValues : currentData));
 
     socket.on('message', (msg) => {
-        console.log('[I] Received new states from client.');
+        serverLog('[I] Received new states from client.');
         const dataObject = JSON.parse(msg);
         monitor.setData(toBinary(dataObject));
     });
 
     socket.on('close', () => {
-        console.log('[I] Websockets connection closed.');
+        serverLog('[I] Websockets connection closed.');
         sockets = sockets.filter(s => s !== socket);
     });
 
@@ -78,20 +87,20 @@ wsServer.on('connection', (socket) => {
 });
 
 expressServer.on('upgrade', (request, socket, head) => {
-    console.log('[I] Incoming Websocket Connection Request.');
+    serverLog('[I] Incoming Websocket Connection Request.');
     wsServer.handleUpgrade(request, socket, head, socket => {
         wsServer.emit('connection', socket, request);
     });
 });
 
 expressApp.use(function (req, _res, next) {
-    console.log(`[I] Received HTTP request for ${req.originalUrl}`);
+    serverLog(`[I] Received HTTP request for ${req.originalUrl}`);
     next();
 });
 
 expressApp.post('/upload', upload.single('bitstream'), (_req, res) => {
-    console.log('[I] Received a file to upload to FPGA.');
-    console.log('[I] Stopping communication with FPGA.');
+    serverLog('[I] Received a file to upload to FPGA.');
+    serverLog('[I] Stopping communication with FPGA.');
     monitor.stop();
     res.status(200).end();
 });
