@@ -90,6 +90,7 @@ architecture behavioral of UART_RX is
 	(
 		i_CLK		:	in std_logic;
 		i_RST		:	in std_logic;
+		i_ENA		:	in std_logic := '1';
 		o_COUNT	:	out integer range 0 to max_count;
 		o_EQ		:	out std_logic
 	);
