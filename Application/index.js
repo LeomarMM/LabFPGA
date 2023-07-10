@@ -20,7 +20,7 @@ const expressServer = expressApp.listen(config.expressPort, () => {
 const storage = multer.diskStorage(
     {
         destination: (_req, _file, callback) => {
-            callback(null, 'bitstreams');
+            callback(null, 'bitstreams/'+config.boardName+'/');
         },
         filename: (_req, _file, callback) => {
             callback(null, 'user_bitstream.sof');
@@ -41,7 +41,7 @@ function serverLog(message) {
 
 function programFPGA(cdf) {
     serverLog(`[I] Programming FPGA with ${cdf}.`);
-    exec(config.quartus_pgm + ' -c '+config.quartus_pgm_port+' bitstreams/' + cdf + '.cdf', () => {
+    exec(config.quartus_pgm + ' -c '+config.quartus_pgm_port+' bitstreams/'+ config.boardName+'/' + cdf + '.cdf', () => {
         monitor.start();
     });
 }

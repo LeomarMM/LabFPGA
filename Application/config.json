@@ -5,5 +5,6 @@
     "crcPolynomial": 47,
     "expressPort": 3000,
     "quartus_pgm": "D:\\Programas\\intelFPGA_lite\\22.1std\\quartus\\bin64\\quartus_pgm.exe",
-    "quartus_pgm_port": 1
+    "quartus_pgm_port": 1,
+    "boardName": "RZEasyFPGA"
 }
