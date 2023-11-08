@@ -14,6 +14,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use work.machine_states_common.all;
 
 entity MONITOR is
 generic
@@ -35,17 +36,23 @@ end MONITOR;
 
 architecture behavioral of MONITOR is
 
-	type top_state is (IDLE, RECV, FILL_BUFFER, 
-	PRE_CRC, CRC_FEED, CRC_COUNT, LOAD_ACK, 
-	START_RESPONSE, SEND_RESPONSE, CHANGE_MODE,
-	FILL_OUTPUT, LOAD_PINS, LOAD_CRC, COUNT_CLEAR, 
-	COUNT_SENT,	WAIT_RESPONSE, RECV_RESPONSE, 
-	CHECK_RESPONSE, RESET_MACH);
-	attribute syn_encoding : string;
-	attribute syn_encoding of top_state :  type is "safe";
-	
 	constant buffer_size : integer := 8*(bytes+1);
 	constant output_size : integer := 8*bytes;
+
+	component BUFFER_MEMORY
+	generic (buffer_size : integer := buffer_size);
+	port 
+	(
+		i_CLK			:	in			std_logic;
+		i_RST			:	in 		std_logic;
+		i_STATE		:	in			top_state;
+		i_BYTE		:	in			std_logic_vector(7 downto 0);
+		i_CRC			:	in			std_logic_vector(7 downto 0);
+		i_CRC_MATCH	:	in			std_logic;
+		i_DATA		:	in			std_logic_vector(buffer_size-1 downto 0);
+		o_DATA		:	buffer	std_logic_vector(buffer_size-1 downto 0)
+	);
+	end component;
 
 	component COUNTER
 	generic
@@ -215,29 +222,18 @@ begin
 		o_TX		=>	o_TX,
 		o_RTS		=>	w_RTS
 	);
-
-	-- Registradores de bufferização
-	process(i_CLK, w_BUF_RST)
-	begin
-		if(w_BUF_RST = '1') then
-			r_BUFFER <= (OTHERS => '0');
-		elsif(falling_edge(i_CLK)) then
-			if(t_STATE = FILL_BUFFER) then
-				r_BUFFER <= r_BUFFER(output_size-1 downto 0) & w_DATA_RX;
-			elsif(t_STATE = LOAD_ACK) then
-				if(w_EQ = '1') then
-					r_BUFFER(buffer_size-1 downto output_size) <= ACK;
-				else
-					r_BUFFER(buffer_size-1 downto output_size) <= NAK;
-				end if;
-			elsif(t_STATE = LOAD_PINS) then
-				r_BUFFER <= i_PINS & x"00";
-			elsif(t_STATE = LOAD_CRC) then
-				r_BUFFER(7 downto 0) <= w_CRC_OUT;
-			end if;
-		end if;
-	end process;
-	
+	U4	:	BUFFER_MEMORY
+	port map
+	(
+		i_CLK		=> i_CLK,
+		i_RST		=> w_BUF_RST,
+		i_STATE	=> t_STATE,
+		i_BYTE	=> w_DATA_RX, 
+		i_CRC		=> w_CRC_OUT,
+		i_CRC_MATCH => w_EQ,
+		i_DATA	=> i_PINS & x"00",
+		o_DATA	=> r_BUFFER
+	);
 	
 	-- Registradores de saída
 	process(i_CLK, i_RST)
