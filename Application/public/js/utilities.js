@@ -2,146 +2,146 @@ const properties =
 {
     HEX5: 
     {
-        renderCoords: {x: 82, y: 585}
+        renderCoords: {x: 86, y: 23}
     },
     HEX4: 
     {
-        renderCoords: {x: 122, y: 585}
+        renderCoords: {x: 126, y: 23}
     },
     HEX3: 
     {
-        renderCoords: {x: 183, y: 585}
+        renderCoords: {x: 187, y: 23}
     },
     HEX2: 
     {
-        renderCoords: {x: 223, y: 585}
+        renderCoords: {x: 227, y: 23}
     },
     HEX1: 
     {
-        renderCoords: {x: 285, y: 585}
+        renderCoords: {x: 289, y: 23}
     },
     HEX0: 
     {
-        renderCoords: {x: 325, y: 585}
+        renderCoords: {x: 329, y: 23}
     },
     LEDR9: 
     {
-        renderCoords: {x: 81, y: 659}
+        renderCoords: {x: 32, y: 97}
     },
     LEDR8: 
     {
-        renderCoords: {x: 120, y: 659}
+        renderCoords: {x: 71, y: 97}
     },
     LEDR7: 
     {
-        renderCoords: {x: 164, y: 659}
+        renderCoords: {x: 115, y: 97}
     },
     LEDR6: 
     {
-        renderCoords: {x: 206, y: 659}
+        renderCoords: {x: 157, y: 97}
     },
     LEDR5: 
     {
-        renderCoords: {x: 247, y: 659}
+        renderCoords: {x: 198, y: 97}
     },
     LEDR4: 
     {
-        renderCoords: {x: 291, y: 659}
+        renderCoords: {x:242, y: 97}
     },
     LEDR3: 
     {
-        renderCoords: {x: 334, y: 659}
+        renderCoords: {x: 285, y: 97}
     },
     LEDR2: 
     {
-        renderCoords: {x: 376, y: 659}
+        renderCoords: {x: 327, y: 97}
     },
     LEDR1: 
     {
-        renderCoords: {x: 418, y: 659}
+        renderCoords: {x: 369, y: 97}
     },
     LEDR0: 
     {
-        renderCoords: {x: 460, y: 659}
+        renderCoords: {x: 411, y: 97}
     },
     SW9:
     {
-        clickArea: {xTop: 61, yTop: 700, xEnd: 94, yEnd: 769},
+        clickArea: {xTop: 18, yTop: 140, xEnd: 52, yEnd: 210},
         holdClick: false,
-        renderCoords: {xTop: 68, yTop: 717, yMid: 734}
+        renderCoords: {xTop: 22, yTop: 155, yMid: 172}
     },
     SW8:
     {
-        clickArea: {xTop: 104, yTop: 700, xEnd: 136, yEnd: 769},
+        clickArea: {xTop: 60, yTop: 140, xEnd: 95, yEnd: 210},
         holdClick: false,
-        renderCoords: {xTop: 111, yTop: 717, yMid: 734}
+        renderCoords: {xTop: 65, yTop: 155, yMid: 172}
     },
     SW7:
     {
-        clickArea: {xTop: 146, yTop: 700, xEnd: 179, yEnd: 769},
+        clickArea: {xTop: 102, yTop: 140, xEnd: 136, yEnd: 210},
         holdClick: false,
-        renderCoords: {xTop: 153, yTop: 717, yMid: 734}
+        renderCoords: {xTop: 107, yTop: 155, yMid: 172}
     },
     SW6:
     {
-        clickArea: {xTop: 189, yTop: 700, xEnd: 221, yEnd: 769},
+        clickArea: {xTop: 144, yTop: 140, xEnd: 178, yEnd: 210},
         holdClick: false,
-        renderCoords: {xTop: 196, yTop: 717, yMid: 734}
+        renderCoords: {xTop: 150, yTop: 155, yMid: 172}
     },
     SW5:
     {
-        clickArea: {xTop: 233, yTop: 700, xEnd: 265, yEnd: 769},
+        clickArea: {xTop: 188, yTop: 140, xEnd: 222, yEnd: 210},
         holdClick: false,
-        renderCoords: {xTop: 240, yTop: 717, yMid: 734}
+        renderCoords: {xTop: 194, yTop: 155, yMid: 172}
     },
     SW4:
     {
-        clickArea: {xTop: 275, yTop: 700, xEnd: 307, yEnd: 769},
+        clickArea: {xTop: 230, yTop: 140, xEnd: 264, yEnd: 210},
         holdClick: false,
-        renderCoords: {xTop: 282, yTop: 717, yMid: 734}
+        renderCoords: {xTop: 236, yTop: 155, yMid: 172}
     },
     SW3:
     {
-        clickArea: {xTop: 319, yTop: 700, xEnd: 351, yEnd: 769},
+        clickArea: {xTop: 274, yTop: 140, xEnd: 307, yEnd: 210},
         holdClick: false,
-        renderCoords: {xTop: 326, yTop: 717, yMid: 734}
+        renderCoords: {xTop: 280, yTop: 155, yMid: 172}
     },
     SW2:
     {
-        clickArea: {xTop: 361, yTop: 700, xEnd: 393, yEnd: 769},
+        clickArea: {xTop: 316, yTop: 140, xEnd: 350, yEnd: 210},
         holdClick: false,
-        renderCoords: {xTop: 368, yTop: 717, yMid: 734}
+        renderCoords: {xTop: 322, yTop: 155, yMid: 172}
     },
     SW1:
     {   
-        clickArea: {xTop: 405, yTop: 700, xEnd: 437, yEnd: 769},
+        clickArea: {xTop: 360, yTop: 140, xEnd: 393, yEnd: 210},
         holdClick: false,
-        renderCoords: {xTop: 412, yTop: 717, yMid: 734}
+        renderCoords: {xTop: 366, yTop: 155, yMid: 172}
     },
     SW0:
     {
-        clickArea: {xTop: 448, yTop: 700, xEnd: 480, yEnd: 769},
+        clickArea: {xTop: 402, yTop: 140, xEnd: 438, yEnd: 210},
         holdClick: false,
-        renderCoords: {xTop: 455, yTop: 717, yMid: 734}
+        renderCoords: {xTop: 409, yTop: 155, yMid: 172}
     },
     KEY3:
     {
-        clickArea: {xTop: 501, yTop: 701, xEnd: 570, yEnd: 770},
+        clickArea: {xTop: 81, yTop: 235, xEnd: 152, yEnd: 304},
         holdClick: true
     },
     KEY2: 
     {
-        clickArea: {xTop: 579, yTop: 701, xEnd: 648, yEnd: 770},
+        clickArea: {xTop: 160, yTop: 235, xEnd: 229, yEnd: 304},
         holdClick: true
     },
     KEY1: 
     {
-        clickArea: {xTop: 657, yTop: 701, xEnd: 726, yEnd: 770},
+        clickArea: {xTop: 236, yTop: 235, xEnd: 307, yEnd: 304},
         holdClick: true
     },
     KEY0:
     {
-        clickArea: {xTop: 734, yTop: 701, xEnd: 803, yEnd: 770},
+        clickArea: {xTop: 314, yTop: 235, xEnd: 383, yEnd: 304},
         holdClick: true
     }
 };
